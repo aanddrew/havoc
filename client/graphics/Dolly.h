@@ -2,7 +2,7 @@
 #define SPRITE_H
 
 #include <SDL2/SDL.h>
-#include "../utils/Vector.h"
+#include "../../utils/Vector.h"
 
 typedef struct {
     Vector* surfaces;
