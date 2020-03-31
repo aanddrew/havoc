@@ -1,4 +1,5 @@
 #include "Dolly.h"
+#include <string.h>
 
 Dolly* Dolly_init() {
     Dolly* self = malloc(sizeof(Dolly));
@@ -18,10 +19,10 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
     name[(strchr(name, '.') - name) - 2] = '0';
     for(int i = 1; i < num; i++) {
         name[(strchr(name, '.') - name) - 1] = '0' + i;
-        SDL_Surface* surface = IMG_Load(name);
+        SDL_Surface* surface = SDL_LoadBMP(name);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(window_render, surface);
         if (!surface || !texture) {
-            fprintf(stderr, "error loading texture file %s\n", name);
+            printf("error loading texture file %s\n", name);
             return 0;
         }
         Vector_push(self->surfaces, surface);
@@ -40,7 +41,7 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer) {
                 Vector_get(self->textures, i),
                 NULL, 
                 &rect_copy, 
-                self->angle, 
+                (double) self->angle, 
                 NULL, 
                 SDL_FLIP_NONE
         );

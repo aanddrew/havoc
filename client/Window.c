@@ -11,10 +11,10 @@ Window* Window_init() {
 	window->window = SDL_CreateWindow
 	(
 		"havoc", 
-		0, 
-		0, 
-		1280, 
-		720, 
+		100, 
+		100, 
+		640, 
+		480, 
 		0
 	);
 	window->renderer = SDL_CreateRenderer(window->window, -1, SDL_RENDERER_PRESENTVSYNC);

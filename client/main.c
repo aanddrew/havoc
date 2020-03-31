@@ -1,16 +1,19 @@
 #include <SDL2/SDL.h>
 #include <string.h>
-#include <SDL2/SDL_image.h>
 
 #include "Dolly.h"
 #include "Window.h"
 
-int main()
+#ifdef WIN32
+    #define strdup _strdup
+#endif
+
+int main(int argc, char** argv)
 {
     Window* window = Window_init();
 
     Dolly* wiz = Dolly_init();
-    Dolly_setSprites(wiz, window->renderer, "res/wizard/wizard_16_00.png", 9);
+    Dolly_setSprites(wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
 
 	SDL_Event e;
 	int done = 0;
