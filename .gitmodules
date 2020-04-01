@@ -1,0 +1,3 @@
+[submodule "server/znet"]
+	path = server/znet
+	url = https://github.com/starwing/znet
