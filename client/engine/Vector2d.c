@@ -1,4 +1,3 @@
-#include "../global.h"
 #include "Vector2d.h"
 
 #include <math.h>
@@ -33,7 +32,7 @@ float Vector2d_magnitude_squared(Vector2d v) {
 }
 
 float Vector2d_magnitude(Vector2d v) {
-    return (float) sqrt(Vector2d_magnitude_squared(v));
+    return sqrt(Vector2d_magnitude_squared(v));
 }
 
 float Vector2d_angle(Vector2d v) {

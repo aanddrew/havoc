@@ -1,10 +1,8 @@
-#include "../global.h"
 #include "Dolly.h"
 #include <string.h>
-#include <stdio.h>
 
 Dolly* Dolly_init() {
-    Dolly* self = (Dolly*) malloc(sizeof(Dolly));
+    Dolly* self = malloc(sizeof(Dolly));
     self->surfaces = Vector_init();
     self->textures = Vector_init();
 
@@ -14,12 +12,13 @@ Dolly* Dolly_init() {
     self->rect.h = 64;
 
     self->offset = 5;
+    return self;
 }
 
 int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num) {
     char* name = strdup(file_name);
     name[(strchr(name, '.') - name) - 2] = '0';
-    for(int i = 1; i < num; i++) {
+    for(int i = 0; i < num; i++) {
         name[(strchr(name, '.') - name) - 1] = '0' + i;
         SDL_Surface* surface = SDL_LoadBMP(name);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(window_render, surface);
@@ -43,7 +42,7 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer) {
                 Vector_get(self->textures, i),
                 NULL, 
                 &rect_copy, 
-                (double) ((self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI),
+                (double) (self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI ,
                 NULL, 
                 SDL_FLIP_NONE
         );

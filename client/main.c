@@ -1,18 +1,23 @@
 #include <SDL2/SDL.h>
 #include <string.h>
 
-#include "global.h"
-
 #include "graphics/Window.h"
 #include "graphics/Dolly.h"
 
 #include "engine/Player.h"
 #include "engine/Controller.h"
 
+#include "engine/Projectile.h"
+
+#ifdef WIN32
+    #define strdup _strdup
+#endif
+
 int main(int argc, char** argv)
 {
     Window* window = Window_init();
 
+ 
     Dolly* wiz = Dolly_init();
     Dolly_setSprites(wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
 
@@ -22,6 +27,16 @@ int main(int argc, char** argv)
     Controller c;
     Controller_init(&c);
     c.player = &p;
+
+
+    /** jeff **/ 
+    Dolly* zap = Dolly_init();
+    Dolly_setSprites(zap, window->renderer, "res/projectile/zap_16_00.bmp", 3);
+
+    Projectile z;
+    Proj_init(&z, &p);
+    z.sprite = zap;
+    
 
 	SDL_Event e;
 	int done = 0;
@@ -48,8 +63,10 @@ int main(int argc, char** argv)
 			}
 		}
         Controller_update(&c, ((float) dt) / 1000.0f);
+
         Window_clear(window);
 		
+        Dolly_render(zap, window->renderer);
         Dolly_render(wiz, window->renderer);
         //Dolly_translate(wiz, 1, 1);
         //Dolly_rotate(wiz, 2);
@@ -58,6 +75,7 @@ int main(int argc, char** argv)
 	}
 
     Dolly_delete(wiz);
+    Dolly_delete(zap);
     Window_delete(window);
 	return 0;
 }

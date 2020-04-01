@@ -1,4 +1,3 @@
-#include "../global.h"
 #include "Player.h"
 #include "Vector2d.h"
 
