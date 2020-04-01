@@ -1,8 +1,10 @@
+#include "../global.h"
 #include "Dolly.h"
 #include <string.h>
+#include <stdio.h>
 
 Dolly* Dolly_init() {
-    Dolly* self = malloc(sizeof(Dolly));
+    Dolly* self = (Dolly*) malloc(sizeof(Dolly));
     self->surfaces = Vector_init();
     self->textures = Vector_init();
 
@@ -41,7 +43,7 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer) {
                 Vector_get(self->textures, i),
                 NULL, 
                 &rect_copy, 
-                (double) (self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI ,
+                (double) ((self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI),
                 NULL, 
                 SDL_FLIP_NONE
         );

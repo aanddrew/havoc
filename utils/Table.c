@@ -1,3 +1,5 @@
+#include "../client/global.h"
+
 #include "Table.h"
 
 #include <stdlib.h>

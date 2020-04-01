@@ -1,15 +1,13 @@
 #include <SDL2/SDL.h>
 #include <string.h>
 
+#include "global.h"
+
 #include "graphics/Window.h"
 #include "graphics/Dolly.h"
 
 #include "engine/Player.h"
 #include "engine/Controller.h"
-
-#ifdef WIN32
-    #define strdup _strdup
-#endif
 
 int main(int argc, char** argv)
 {

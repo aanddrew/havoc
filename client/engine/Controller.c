@@ -1,3 +1,4 @@
+#include "../global.h"
 #include "Controller.h"
 
 static const int default_binds[] = {
