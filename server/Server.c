@@ -31,13 +31,7 @@ void on_udp_recv(void *ud, zn_Udp *udp, unsigned err, unsigned count,
     printf("[%p] udp received message %d from %s:%d: %.*s (%d bytes)\n",
             udp, data->count, addr, port, (int)count, data->buffer, (int)count);
 
-    /*
-    if (data->count >= 5) {
-        zn_deludp(udp);
-    }
-    else */{
-        zn_recvfrom(udp, data->buffer, MYDATA_BUFLEN, on_udp_recv, data);
-    }
+    zn_recvfrom(udp, data->buffer, MYDATA_BUFLEN, on_udp_recv, data);
 }
 
 
