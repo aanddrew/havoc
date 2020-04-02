@@ -9,8 +9,8 @@ void Player_init(Player* self) {
 }
 
 static void Player_update_sprite(Player* self) {
-    self->sprite->rect.x = (int) (self->pos.x);
-    self->sprite->rect.y = (int) (self->pos.y);
+    self->sprite->rect.x = (int) (self->pos.x) - self->sprite->rect.w/2;
+    self->sprite->rect.y = (int) (self->pos.y) - self->sprite->rect.h/2;
 }
 
 void Player_translate(Player* self, float dx, float dy) {

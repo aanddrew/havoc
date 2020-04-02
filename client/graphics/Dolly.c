@@ -35,7 +35,7 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
 
 void Dolly_render(Dolly* self, SDL_Renderer* window_renderer) {
     SDL_Rect rect_copy = self->rect;
-    for(int i = 1; i <= self->textures->num; i++) {
+    for(int i = 0; i < self->textures->num; i++) {
         rect_copy.y -= self->offset;
         SDL_RenderCopyEx(
                 window_renderer, 

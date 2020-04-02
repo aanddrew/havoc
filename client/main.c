@@ -22,6 +22,7 @@ int main(int argc, char** argv)
     Dolly_setSprites(wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
 
     Player p;
+
     Player_init(&p);
     p.sprite = wiz;
     Controller c;
@@ -31,11 +32,11 @@ int main(int argc, char** argv)
 
     /** jeff **/ 
     Dolly* zap = Dolly_init();
-    Dolly_setSprites(zap, window->renderer, "res/projectile/zap_16_00.bmp", 3);
-
+    Dolly_setSprites(zap, window->renderer, "res/projectile/zap_16_00.bmp", 1);
     Projectile z;
     Proj_init(&z, &p);
     z.sprite = zap;
+
     
 
 	SDL_Event e;
@@ -57,12 +58,17 @@ int main(int argc, char** argv)
                 case SDL_KEYUP:
                     Controller_keyup(&c, e.key.keysym.sym);
                 break;
+                case SDL_MOUSEBUTTONDOWN:
+                  launch_proj(&z);
+                break;
 				case SDL_QUIT:
 					done = 1;
 				break;
 			}
 		}
+        //Proj_update(&z, p.sprite->rect.x, p.sprite->rect.y);
         Controller_update(&c, ((float) dt) / 1000.0f);
+        Proj_update(&z);
 
         Window_clear(window);
 		

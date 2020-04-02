@@ -9,12 +9,14 @@ typedef struct {
     Player* parent;
     Dolly* sprite;
     Vector2d pos; 
+    Vector2d dir; 
     float speed;
 
 } Projectile;
 
 void Proj_init(Projectile* self, Player* start);
 
-void Proj_update(Projectile* self, float dx, float dy);
+void Proj_update(Projectile* self);
+void launch_proj(Projectile* self);
 
 #endif
