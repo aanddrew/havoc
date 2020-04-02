@@ -1,13 +1,18 @@
 #include "Projectile.h"
 #include "Vector2d.h"
 
-void Proj_init(Projectile* self, Player* start)
+static Projectile* projectiles;
+static short num_projectiles = 0;
+static short size_projectiles = 128;
+
+static Vector* projectile_sprites;
+
+void Proj_init(Projectile* self, Vector2d pos, Vector2d dir)
 {
-  self->pos.x = start->pos.x;
-  self->pos.y = start->pos.y;
+  self->pos = pos;
+  self->dir = dir;
   self->speed = 5;
   self->sprite = NULL;
-  self->parent = start;
 }
 
 static void Proj_update_sprite(Projectile* self)
@@ -21,21 +26,34 @@ void Proj_update(Projectile* self) {
     self->pos.y += self->dir.y * self->speed;
     Proj_update_sprite(self);
 }
-void launch_proj(Projectile* self)
+
+void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir)
 {
-    self->pos.x = self->parent->pos.x;
-    self->pos.y = self->parent->pos.y;
+    if (!projectiles) {
+        projectiles = (Projectile*) malloc(sizeof(Projectile) * size_projectiles);
+    }
+    if (num_projectiles == size_projectiles) {
+        size_projectiles *= 2;
+        projectiles = realloc(projectiles, sizeof(Projectile) * size_projectiles);
+    }
+
+    Projectile* self = &projectiles[num_projectiles];
+    num_projectiles++;
+
+    Proj_init(self, pos, dir);
+    self->sprite = sprite;
     Proj_update_sprite(self);
+    self->sprite->angle = Vector2d_angle(self->dir);
+}
 
-    int mousex, mousey;
-    SDL_GetMouseState(&mousex, &mousey);
-    Vector2d mouse_pos = {mousex, mousey};
-    Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->parent->pos);
-    float angle = Vector2d_angle(mouse_diff);
-    self->sprite->angle = angle;
+void Proj_update_all(float dt) {
+    for(int i = 0; i < num_projectiles; i++) {
+        Proj_update(&projectiles[i]);
+    }
+}
 
-    //normalize vector
-    mouse_diff.x =  mouse_diff.x/(Vector2d_magnitude(mouse_diff));
-    mouse_diff.y =  mouse_diff.y/(Vector2d_magnitude(mouse_diff));
-    self->dir = mouse_diff;
+void Proj_render_all(SDL_Renderer* renderer) {
+    for(int i = 0; i < num_projectiles; i++) {
+        Dolly_render(projectiles[i].sprite, renderer);
+    }
 }

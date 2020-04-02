@@ -6,17 +6,18 @@
 #include "Player.h"
 
 typedef struct {
-    Player* parent;
     Dolly* sprite;
     Vector2d pos; 
     Vector2d dir; 
     float speed;
-
 } Projectile;
 
-void Proj_init(Projectile* self, Player* start);
+void Proj_init(Projectile* self, Vector2d pos, Vector2d dir);
 
 void Proj_update(Projectile* self);
-void launch_proj(Projectile* self);
+void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir);
+
+void Proj_render_all(SDL_Renderer* renderer);
+void Proj_update_all(float dt);
 
 #endif

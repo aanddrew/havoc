@@ -6,6 +6,7 @@
 
 typedef struct {
     Vector2d pos;
+    Vector2d look;
     Dolly* sprite;
     float speed;
 } Player;

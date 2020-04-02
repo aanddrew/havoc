@@ -45,7 +45,8 @@ void Controller_update(Controller* self, float dt) {
     Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->player->pos);
     float angle = Vector2d_angle(mouse_diff);
     self->player->sprite->angle = angle;
-    //printf("%lf\n", angle);
+
+    self->player->look = mouse_diff;
 
     float dx = 0.0f;
     float dy = 0.0f;
