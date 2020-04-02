@@ -14,7 +14,6 @@ typedef struct {
 
 void Proj_init(Projectile* self, Vector2d pos, Vector2d dir);
 
-void Proj_update(Projectile* self);
 void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir);
 
 void Proj_render_all(SDL_Renderer* renderer);

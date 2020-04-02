@@ -10,8 +10,8 @@ static Vector* projectile_sprites;
 void Proj_init(Projectile* self, Vector2d pos, Vector2d dir)
 {
   self->pos = pos;
-  self->dir = dir;
-  self->speed = 5;
+  self->dir = Vector2d_normalize(dir);
+  self->speed = 1000;
   self->sprite = NULL;
 }
 
@@ -21,9 +21,9 @@ static void Proj_update_sprite(Projectile* self)
   self->sprite->rect.y = (int) (self->pos.y);
 }
 
-void Proj_update(Projectile* self) {
-    self->pos.x += self->dir.x * self->speed;
-    self->pos.y += self->dir.y * self->speed;
+void Proj_update(Projectile* self, float dt) {
+    self->pos.x += self->dir.x * self->speed * dt;
+    self->pos.y += self->dir.y * self->speed * dt;
     Proj_update_sprite(self);
 }
 
@@ -48,12 +48,13 @@ void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir)
 
 void Proj_update_all(float dt) {
     for(int i = 0; i < num_projectiles; i++) {
-        Proj_update(&projectiles[i]);
+        Proj_update(&projectiles[i], dt);
     }
 }
 
 void Proj_render_all(SDL_Renderer* renderer) {
     for(int i = 0; i < num_projectiles; i++) {
+        Proj_update_sprite(&projectiles[i]);
         Dolly_render(projectiles[i].sprite, renderer);
     }
 }
