@@ -25,4 +25,6 @@ void Camera_zoom(Camera* self, float multi);
 void Camera_transform_point(const Camera* self, float in_x, float in_y, float* out_x, float* out_y);
 void Camera_transform_rect(const Camera* self, const SDL_Rect* input, SDL_Rect* output);
 
+void Camera_print(const Camera* self);
+
 #endif

@@ -38,22 +38,24 @@ void Controller_keyup(Controller* self, int key) {
     self->pressed[key_to_bind(self, key)] = 0;
 }
 
+void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e) {
+    
+}
+
+void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {
+    int scrolled = e.y;
+    Camera_zoom(self->cam, ((float) scrolled) /15.0f + 1.0f);
+}
+
 void Controller_update(Controller* self, float dt, const Camera* cam) {
     int mousex, mousey;
     SDL_GetMouseState(&mousex, &mousey);
 
+    mousex = ((float) mousex) / cam->scale;
+    mousey = ((float) mousey) / cam->scale;
+
     mousex += cam->x;
     mousey += cam->y;
-    float camcenterx, camcentery;
-    Camera_get_center(cam, &camcenterx, &camcentery);
-    mousex -= camcenterx;
-    mousey -= camcentery;
-
-    mousex /= cam->scale;
-    mousey /= cam->scale;
-
-    mousex += camcenterx;
-    mousey += camcentery;
 
     Vector2d mouse_pos = {mousex, mousey};
     Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->player->pos);

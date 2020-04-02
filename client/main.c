@@ -25,9 +25,6 @@ int main(int argc, char** argv)
 
     Player_init(&p);
     p.sprite = wiz;
-    Controller c;
-    Controller_init(&c);
-    c.player = &p;
 
     Dolly* zap = Dolly_init();
     Dolly_setSprites(zap, window->renderer, "res/projectile/zap_16_00.bmp", 1);
@@ -39,6 +36,11 @@ int main(int argc, char** argv)
     SDL_RenderGetViewport(window->renderer, &viewport);
 
     Camera_set_size(&cam, viewport.w, viewport.h);
+
+    Controller c;
+    Controller_init(&c);
+    c.player = &p;
+    c.cam = &cam;
 
 	SDL_Event e;
 	int done = 0;
@@ -55,20 +57,18 @@ int main(int argc, char** argv)
 			{
                 case SDL_KEYDOWN:
                     Controller_keydown(&c, e.key.keysym.sym);
-                    if (e.key.keysym.sym == SDLK_DOWN) {
-                        Camera_translate(&cam, 0, 10.f);
-                    }
                 break;
                 case SDL_KEYUP:
                     Controller_keyup(&c, e.key.keysym.sym);
                 break;
                 case SDL_MOUSEBUTTONDOWN:
-                  launch_proj(zap, 0, p.pos, p.look);
+                    Controller_mousebuttondown(&c, e.button);
+                    launch_proj(zap, 0, p.pos, p.look); 
+                    // ^ eventually move this line to Controller_mousebuttondown
                 break;
-                case SDL_MOUSEWHEEL: {
-                    int scrolled = e.wheel.y;
-                    Camera_zoom(&cam, ((float) scrolled) /15.0f + 1.0f);
-                } break;
+                case SDL_MOUSEWHEEL: 
+                    Controller_mousewheel(&c, e.wheel);
+                break;
 				case SDL_QUIT:
 					done = 1;
 				break;

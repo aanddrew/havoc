@@ -36,8 +36,8 @@ void Camera_zoom(Camera* self, float multi) {
     float x,y;
     Camera_get_center(self, &x, &y);
 
-    self->w *= multi;
-    self->h *= multi;
+    self->w /= multi;
+    self->h /= multi;
 
     Camera_set_center(self, x, y);
     self->scale *= multi;
@@ -53,4 +53,8 @@ void Camera_transform_rect(const Camera* self, const SDL_Rect* input, SDL_Rect* 
     output->y = (input->y - self->y) * self->scale;
     output->w = input->w * self->scale;
     output->h = input->h * self->scale;
+}
+
+void Camera_print(const Camera* self) {
+    printf("%f, %f, %f, %f, %f, %f\n", self->x, self->y, self->w, self->h, self->scale, self->aspect_ratio);
 }
