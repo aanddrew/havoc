@@ -29,6 +29,6 @@ typedef struct {
 void Controller_init(Controller* self);
 void Controller_keydown(Controller* self, int key);
 void Controller_keyup(Controller* self, int key);
-void Controller_update(Controller* self, float dt);
+void Controller_update(Controller* self, float dt, const Camera* cam);
 
 #endif

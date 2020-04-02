@@ -38,9 +38,23 @@ void Controller_keyup(Controller* self, int key) {
     self->pressed[key_to_bind(self, key)] = 0;
 }
 
-void Controller_update(Controller* self, float dt) {
+void Controller_update(Controller* self, float dt, const Camera* cam) {
     int mousex, mousey;
     SDL_GetMouseState(&mousex, &mousey);
+
+    mousex += cam->x;
+    mousey += cam->y;
+    float camcenterx, camcentery;
+    Camera_get_center(cam, &camcenterx, &camcentery);
+    mousex -= camcenterx;
+    mousey -= camcentery;
+
+    mousex /= cam->scale;
+    mousey /= cam->scale;
+
+    mousex += camcenterx;
+    mousey += camcentery;
+
     Vector2d mouse_pos = {mousex, mousey};
     Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->player->pos);
     float angle = Vector2d_angle(mouse_diff);

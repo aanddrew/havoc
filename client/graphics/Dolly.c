@@ -1,4 +1,6 @@
 #include "Dolly.h"
+
+#include "Camera.h"
 #include <string.h>
 
 Dolly* Dolly_init() {
@@ -33,15 +35,17 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
     return 1;
 }
 
-void Dolly_render(Dolly* self, SDL_Renderer* window_renderer) {
+void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam) {
     SDL_Rect rect_copy = self->rect;
+    SDL_Rect camera_rect;
     for(int i = 0; i < self->textures->num; i++) {
         rect_copy.y -= self->offset;
+        Camera_transform_rect(cam, &rect_copy, &camera_rect);
         SDL_RenderCopyEx(
                 window_renderer, 
                 Vector_get(self->textures, i),
                 NULL, 
-                &rect_copy, 
+                &camera_rect, 
                 (double) (self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI ,
                 NULL, 
                 SDL_FLIP_NONE

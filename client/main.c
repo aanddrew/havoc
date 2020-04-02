@@ -3,10 +3,10 @@
 
 #include "graphics/Window.h"
 #include "graphics/Dolly.h"
+#include "graphics/Camera.h"
 
 #include "engine/Player.h"
 #include "engine/Controller.h"
-
 #include "engine/Projectile.h"
 
 #ifdef WIN32
@@ -29,14 +29,16 @@ int main(int argc, char** argv)
     Controller_init(&c);
     c.player = &p;
 
-    /** jeff **/ 
     Dolly* zap = Dolly_init();
     Dolly_setSprites(zap, window->renderer, "res/projectile/zap_16_00.bmp", 1);
-    /*
-    Projectile z;
-    Proj_init(&z, &p);
-    z.sprite = zap;
-    */
+
+    Camera cam;
+    Camera_init(&cam);
+
+    SDL_Rect viewport;
+    SDL_RenderGetViewport(window->renderer, &viewport);
+
+    Camera_set_size(&cam, viewport.w, viewport.h);
 
 	SDL_Event e;
 	int done = 0;
@@ -53,6 +55,9 @@ int main(int argc, char** argv)
 			{
                 case SDL_KEYDOWN:
                     Controller_keydown(&c, e.key.keysym.sym);
+                    if (e.key.keysym.sym == SDLK_DOWN) {
+                        Camera_translate(&cam, 0, 10.f);
+                    }
                 break;
                 case SDL_KEYUP:
                     Controller_keyup(&c, e.key.keysym.sym);
@@ -60,6 +65,10 @@ int main(int argc, char** argv)
                 case SDL_MOUSEBUTTONDOWN:
                   launch_proj(zap, 0, p.pos, p.look);
                 break;
+                case SDL_MOUSEWHEEL: {
+                    int scrolled = e.wheel.y;
+                    Camera_zoom(&cam, ((float) scrolled) /15.0f + 1.0f);
+                } break;
 				case SDL_QUIT:
 					done = 1;
 				break;
@@ -67,13 +76,13 @@ int main(int argc, char** argv)
 		}
         //Proj_update(&z, p.sprite->rect.x, p.sprite->rect.y);
         float dt_float = ((float) dt) / 1000.0f;
-        Controller_update(&c, dt_float);
+        Controller_update(&c, dt_float, &cam);
         Proj_update_all(dt_float);
 
         Window_clear(window);
 		
-        Dolly_render(wiz, window->renderer);
-        Proj_render_all(window->renderer);
+        Dolly_render(wiz, window->renderer, &cam);
+        Proj_render_all(window->renderer, &cam);
         //Dolly_translate(wiz, 1, 1);
         //Dolly_rotate(wiz, 2);
 

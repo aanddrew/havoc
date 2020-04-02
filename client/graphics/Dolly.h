@@ -1,6 +1,8 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
+#include "Camera.h"
+
 #include <SDL2/SDL.h>
 #include "../../utils/Vector.h"
 
@@ -18,7 +20,7 @@ Dolly* Dolly_init();
 int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num);
 
 //drawing
-void Dolly_render(Dolly* self, SDL_Renderer* window_renderer);
+void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam);
 
 //moving
 void Dolly_setPos(Dolly* self, int x, int y);

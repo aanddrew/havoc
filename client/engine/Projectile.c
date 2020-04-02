@@ -52,9 +52,9 @@ void Proj_update_all(float dt) {
     }
 }
 
-void Proj_render_all(SDL_Renderer* renderer) {
+void Proj_render_all(SDL_Renderer* renderer, const Camera* cam) {
     for(int i = 0; i < num_projectiles; i++) {
         Proj_update_sprite(&projectiles[i]);
-        Dolly_render(projectiles[i].sprite, renderer);
+        Dolly_render(projectiles[i].sprite, renderer, cam);
     }
 }
