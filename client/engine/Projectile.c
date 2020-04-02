@@ -19,6 +19,7 @@ static void Proj_update_sprite(Projectile* self)
 {
   self->sprite->rect.x = (int) (self->pos.x);
   self->sprite->rect.y = (int) (self->pos.y);
+  self->sprite->angle = Vector2d_angle(self->dir);
 }
 
 void Proj_update(Projectile* self, float dt) {
@@ -43,7 +44,6 @@ void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir)
     Proj_init(self, pos, dir);
     self->sprite = sprite;
     Proj_update_sprite(self);
-    self->sprite->angle = Vector2d_angle(self->dir);
 }
 
 void Proj_update_all(float dt) {
