@@ -9,6 +9,8 @@
 #include "engine/Controller.h"
 #include "engine/Projectile.h"
 
+#include "network/Network.h"
+
 #ifdef WIN32
     #define strdup _strdup
 #endif
@@ -16,11 +18,12 @@
 int main(int argc, char** argv)
 {
     Window* window = Window_init();
+    Network_init();
+    Network_send();
+    Proj_init_all_sprites(window->renderer);
  
     Dolly wiz;
     Dolly_init_with_sprites(&wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
-
-    Proj_init_all_sprites(window->renderer);
 
     Player p;
 
