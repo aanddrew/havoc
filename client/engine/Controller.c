@@ -35,10 +35,14 @@ static int key_to_bind(Controller* self, int key) {
 }
 
 void Controller_keydown(Controller* self, int key) {
-    self->pressed[key_to_bind(self, key)] = 1;
+    int bind = key_to_bind(self, key);
+    if (bind < 0 || bind >= NUM_BINDS) return;
+    self->pressed[bind] = 1;
 }
 void Controller_keyup(Controller* self, int key) {
-    self->pressed[key_to_bind(self, key)] = 0;
+    int bind = key_to_bind(self, key);
+    if (bind < 0 || bind >= NUM_BINDS) return;
+    self->pressed[bind] = 0;
 }
 
 void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e) {
@@ -77,7 +81,6 @@ void Controller_update(Controller* self, float dt, const Camera* cam) {
     Player_translate(self->player, dx, dy);
 
     if (self->pressed[CENTER_CAMERA]) { 
-        Camera_print(self->cam);
         Camera_set_center(self->cam, self->player->pos.x, self->player->pos.y); 
     }
 }
