@@ -38,6 +38,7 @@ int main(int argc, char** argv)
         SDL_RenderGetViewport(window->renderer, &viewport);
 
         Camera_set_size(&cam, viewport.w, viewport.h);
+        Camera_set_center(&cam, p.pos.x, p.pos.y);
     }
 
     Controller c;

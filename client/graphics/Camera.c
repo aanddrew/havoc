@@ -27,9 +27,12 @@ void Camera_translate(Camera* self, float dx, float dy) {
 }
 
 void Camera_set_size(Camera* self, float w, float h) {
+    float x, y;
+    Camera_get_center(self, &x, &y);
     self->w = w;
-    self->h = w;
+    self->h = h;
     self->aspect_ratio = w / h;
+    Camera_set_center(self, x, y);
 }
 
 void Camera_zoom(Camera* self, float multi) {
