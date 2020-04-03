@@ -14,9 +14,17 @@ typedef struct {
     float time_alive;
 } Projectile;
 
+enum PROJECTILE_SPRITES {
+    ZAP,
+    NUM_SPRITES,
+};
+
+void Proj_init_all_sprites(SDL_Renderer* window_renderer);
+void Proj_cleanup_all_sprites();
+
 void Proj_init(Projectile* self, Vector2d pos, Vector2d dir);
 
-void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir);
+void launch_proj(int kind, Vector2d pos, Vector2d dir);
 
 void Proj_render_all(SDL_Renderer* renderer, const Camera* cam);
 void Proj_update_all(float dt);

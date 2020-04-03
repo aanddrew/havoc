@@ -16,26 +16,26 @@
 int main(int argc, char** argv)
 {
     Window* window = Window_init();
-
  
-    Dolly* wiz = Dolly_init();
-    Dolly_setSprites(wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
+    Dolly wiz;
+    Dolly_init_with_sprites(&wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
+
+    Proj_init_all_sprites(window->renderer);
 
     Player p;
 
     Player_init(&p);
-    p.sprite = wiz;
-
-    Dolly* zap = Dolly_init();
-    Dolly_setSprites(zap, window->renderer, "res/projectile/zap_16_00.bmp", 1);
+    p.sprite = &wiz;
 
     Camera cam;
     Camera_init(&cam);
 
-    SDL_Rect viewport;
-    SDL_RenderGetViewport(window->renderer, &viewport);
+    {
+        SDL_Rect viewport;
+        SDL_RenderGetViewport(window->renderer, &viewport);
 
-    Camera_set_size(&cam, viewport.w, viewport.h);
+        Camera_set_size(&cam, viewport.w, viewport.h);
+    }
 
     Controller c;
     Controller_init(&c);
@@ -63,11 +63,21 @@ int main(int argc, char** argv)
                 break;
                 case SDL_MOUSEBUTTONDOWN:
                     Controller_mousebuttondown(&c, e.button);
-                    launch_proj(zap, 0, p.pos, p.look); 
+                    launch_proj(0, p.pos, p.look); 
                     // ^ eventually move this line to Controller_mousebuttondown
                 break;
                 case SDL_MOUSEWHEEL: 
                     Controller_mousewheel(&c, e.wheel);
+                break;
+                case SDL_WINDOWEVENT:
+                    switch (e.window.event) {
+                        case SDL_WINDOWEVENT_RESIZED: {
+                            SDL_Rect viewport;
+                            SDL_RenderGetViewport(window->renderer, &viewport);
+
+                            Camera_set_size(&cam, viewport.w, viewport.h);
+                        } break;
+                    }
                 break;
 				case SDL_QUIT:
 					done = 1;
@@ -81,16 +91,13 @@ int main(int argc, char** argv)
 
         Window_clear(window);
 		
-        Dolly_render(wiz, window->renderer, &cam);
+        Dolly_render(&wiz, window->renderer, &cam);
         Proj_render_all(window->renderer, &cam);
-        //Dolly_translate(wiz, 1, 1);
-        //Dolly_rotate(wiz, 2);
 
         Window_present(window);
 	}
 
-    Dolly_delete(wiz);
-    Dolly_delete(zap);
+    Dolly_delete(&wiz);
     Window_delete(window);
 	return 0;
 }

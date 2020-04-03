@@ -15,7 +15,7 @@ Window* Window_init() {
 		100, 
 		640, 
 		480, 
-		0
+		SDL_WINDOW_RESIZABLE
 	);
 	window->renderer = SDL_CreateRenderer(window->window, -1, SDL_RENDERER_PRESENTVSYNC);
 

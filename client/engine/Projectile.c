@@ -5,7 +5,22 @@ static Projectile* projectiles;
 static short num_projectiles = 0;
 static short size_projectiles = 128;
 
-static Vector* projectile_sprites;
+Dolly projectile_sprites[NUM_SPRITES];
+
+void Proj_init_all_sprites(SDL_Renderer* window_renderer) {
+    Dolly_init_with_sprites(
+            &projectile_sprites[ZAP],
+            window_renderer,
+            "res/projectile/zap_16_00.bmp",
+            1
+    );
+}
+
+void Proj_cleanup_all_sprites() {
+    for(int i = 0; i < NUM_SPRITES; i++) {
+        Dolly_delete(&projectile_sprites[i]);
+    }
+}
 
 void Proj_init(Projectile* self, Vector2d pos, Vector2d dir)
 {
@@ -28,7 +43,7 @@ void Proj_update(Projectile* self, float dt) {
     Proj_update_sprite(self);
 }
 
-void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir)
+void launch_proj(int kind, Vector2d pos, Vector2d dir)
 {
     if (!projectiles) {
         projectiles = (Projectile*) malloc(sizeof(Projectile) * size_projectiles);
@@ -42,7 +57,7 @@ void launch_proj(Dolly* sprite, int kind, Vector2d pos, Vector2d dir)
     num_projectiles++;
 
     Proj_init(self, pos, dir);
-    self->sprite = sprite;
+    self->sprite = &projectile_sprites[kind];
     Proj_update_sprite(self);
 }
 

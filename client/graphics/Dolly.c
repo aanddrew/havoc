@@ -2,9 +2,9 @@
 
 #include "Camera.h"
 #include <string.h>
+#include <unistd.h>
 
-Dolly* Dolly_init() {
-    Dolly* self = malloc(sizeof(Dolly));
+void Dolly_init(Dolly* self) {
     self->surfaces = Vector_init();
     self->textures = Vector_init();
 
@@ -14,7 +14,11 @@ Dolly* Dolly_init() {
     self->rect.h = 64;
 
     self->offset = 5;
-    return self;
+}
+
+void Dolly_init_with_sprites(Dolly* self, SDL_Renderer* window_renderer, const char* file_name, int num) {
+    Dolly_init(self);
+    Dolly_setSprites(self, window_renderer, file_name, num);
 }
 
 int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num) {
@@ -25,7 +29,7 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
         SDL_Surface* surface = SDL_LoadBMP(name);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(window_render, surface);
         if (!surface || !texture) {
-            printf("error loading texture file %s\n", name);
+            printf("error loading texture file %s: %s\n", name, SDL_GetError());
             return 0;
         }
         Vector_push(self->surfaces, surface);
@@ -77,5 +81,4 @@ void Dolly_delete(Dolly* self) {
     }
     Vector_delete(self->surfaces);
     Vector_delete(self->textures);
-    free(self);
 }

@@ -14,7 +14,8 @@ typedef struct {
     int offset;
 } Dolly;
 
-Dolly* Dolly_init();
+void Dolly_init(Dolly* self);
+void Dolly_init_with_sprites(Dolly* self, SDL_Renderer* window_renderer, const char* file_name, int num);
 
 //in the form *xx.* where xx is the number to iterate through
 int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num);
