@@ -21,7 +21,7 @@ void on_udp_recv(void *ud, zn_Udp *udp, unsigned err, unsigned count,
     MyData *data = (MyData*)ud;
 
     if (err != ZN_OK) {
-        fprintf(stderr, "[%p] udp meet error when receiving message: %s\n",
+        printf("[%p] udp meet error when receiving message: %s\n",
                 udp, zn_strerror(err));
         zn_deludp(udp);
         return;

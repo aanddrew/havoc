@@ -1,4 +1,5 @@
 #include "Vector2d.h"
+#include "../global.h"
 
 #include <math.h>
 

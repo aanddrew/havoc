@@ -1,8 +1,8 @@
 #include "Dolly.h"
+#include "../global.h"
 
 #include "Camera.h"
 #include <string.h>
-#include <unistd.h>
 
 void Dolly_init(Dolly* self) {
     self->surfaces = Vector_init();
