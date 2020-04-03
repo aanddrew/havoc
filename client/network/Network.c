@@ -17,6 +17,8 @@ typedef struct MyData {
 
 void client_init();
 void receiver_init();
+void client_close();
+void receiver_close();
 
 void Network_init() {
     zn_initialize();
@@ -25,6 +27,14 @@ void Network_init() {
 
     client_init();
     receiver_init();
+}
+
+void Network_deinit() {
+    client_close();
+    receiver_close();
+
+    zn_close(S);
+    zn_deinitialize();
 }
 
 const char* connected_addr;
@@ -38,21 +48,21 @@ void Network_connect(const char* addr) {
 void client_init() {
     const char* my_internal_ip = "192.168.1.3";
     udpclient = zn_newudp(S, my_internal_ip, 0);
+    if (udpclient == NULL) {
+        printf("Error, udpclient is NULL\n");
+    }
 }
 
 void client_close() {
     zn_closeudp(udpclient);
     zn_deludp(udpclient);
-
-    zn_close(S);
-    zn_deinitialize();
 }
 
 void Network_send() {
     const char* msg = "Hello, World\n";
     int returned = zn_sendto(udpclient, msg, strlen(msg), "198.58.109.228", 6969);
     if (returned != ZN_OK) {
-        printf("error\n");
+        printf("Error sending message %d\n", returned);
     }
 }
 /*Client end*/
@@ -83,9 +93,6 @@ void receiver_init() {
 void receiver_close() {
     zn_closeudp(udpserver);
     zn_deludp(udpserver);
-
-    zn_close(S);
-    zn_deinitialize();
 }
 
 void receiver_run() {

@@ -102,5 +102,6 @@ int main(int argc, char** argv)
     Dolly_delete(&wiz);
     Proj_cleanup_all_sprites();
     Window_delete(window);
+    Network_deinit();
 	return 0;
 }
