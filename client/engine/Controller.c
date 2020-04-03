@@ -1,5 +1,7 @@
 #include "Controller.h"
 
+#include "Projectile.h"
+
 static const int default_binds[] = {
     SDLK_w,
     SDLK_s,
@@ -12,6 +14,7 @@ static const int default_binds[] = {
     SDLK_5,
     SDLK_6,
     SDLK_7,
+    SDLK_SPACE,
 };
 
 void Controller_init(Controller* self) {
@@ -39,7 +42,7 @@ void Controller_keyup(Controller* self, int key) {
 }
 
 void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e) {
-    
+    launch_proj(0, self->player->pos, self->player->look);
 }
 
 void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {
@@ -72,4 +75,9 @@ void Controller_update(Controller* self, float dt, const Camera* cam) {
     if (self->pressed[RIGHT]) { dx = self->player->speed * dt; }
 
     Player_translate(self->player, dx, dy);
+
+    if (self->pressed[CENTER_CAMERA]) { 
+        Camera_print(self->cam);
+        Camera_set_center(self->cam, self->player->pos.x, self->player->pos.y); 
+    }
 }

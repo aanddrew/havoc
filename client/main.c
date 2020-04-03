@@ -66,8 +66,6 @@ int main(int argc, char** argv)
                 break;
                 case SDL_MOUSEBUTTONDOWN:
                     Controller_mousebuttondown(&c, e.button);
-                    launch_proj(0, p.pos, p.look); 
-                    // ^ eventually move this line to Controller_mousebuttondown
                 break;
                 case SDL_MOUSEWHEEL: 
                     Controller_mousewheel(&c, e.wheel);
@@ -101,6 +99,7 @@ int main(int argc, char** argv)
 	}
 
     Dolly_delete(&wiz);
+    Proj_cleanup_all_sprites();
     Window_delete(window);
 	return 0;
 }

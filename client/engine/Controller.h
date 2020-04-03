@@ -18,6 +18,7 @@ enum KEYBINDS {
     SLOT_5,
     SLOT_6,
     SLOT_7,
+    CENTER_CAMERA,
     NUM_BINDS,
 };
 
