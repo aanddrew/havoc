@@ -16,6 +16,9 @@ unsigned short output_port;
 void Client_Sender_init(unsigned short port) {
     output_port = port;
     socket = SDLNet_UDP_Open(output_port);
+    if (!socket) {
+        printf("SDLNet_UDP_Open Error: %s\n", SDL_GetError());
+    }
 }
 
 void Client_Sender_deinit() {

@@ -25,9 +25,10 @@ int main(int argc, char** argv)
     /* Initialize Network */
 
     Pool_init();
+    SDLNet_Init();
     Client_Receiver_init(21433);
     Client_Sender_init(21432);
-    Client_Sender_connect("127.0.0.1");
+    Client_Sender_connect("198.58.109.228");
 
     Client_Receiver_run();
     Client_Sender_run();
@@ -124,5 +125,6 @@ int main(int argc, char** argv)
 
     Client_Receiver_deinit();
     Client_Sender_deinit();
+    SDLNet_Quit();
 	return 0;
 }

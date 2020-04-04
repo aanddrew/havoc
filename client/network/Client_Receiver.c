@@ -56,7 +56,7 @@ static int thread_fun(void* arg) {
 }
 
 void Client_Receiver_run() {
-    thread = SDL_CreateThread(thread_fun, "receiever_thread", &shared_pool);
+    thread = SDL_CreateThread(thread_fun, "receiver_thread", &shared_pool);
 }
 
 void Client_Receiver_stop() {
