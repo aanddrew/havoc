@@ -3,16 +3,21 @@
 #include <SDL2/SDL_net.h>
 #include <SDL2/SDL.h>
 
-#include "Server_Receiver.h"
-#include "Server_Pool.h"
+#include "Client_Receiver.h"
+#include "Client_Pool.h"
 
-#include "../utils/Vector.h"
+#include "../../utils/Vector.h"
 
 static UDPsocket sock;
 static SDL_Thread* thread;
 
-void Server_Receiver_init(short port) {
+void Client_Receiver_init(short port) {
     sock = SDLNet_UDP_Open(port);
+}
+
+void Client_Receiver_deinit() {
+    SDLNet_UDP_Close(sock);
+    sock = NULL;
 }
 
 void Clone_packet(UDPpacket* source, UDPpacket* dest) {
@@ -38,6 +43,7 @@ static int thread_fun(void* arg) {
             UDPpacket* new_pack = SDLNet_AllocPacket(1024);
             Clone_packet(pack, new_pack);
             SDL_LockMutex(pool->received_mutex);
+                printf("%s says: %s\n", SDLNet_ResolveIP(&pack->address), pack->data);
                 Vector_push(pool->received, new_pack);
             SDL_UnlockMutex(pool->received_mutex);
         }
@@ -49,12 +55,11 @@ static int thread_fun(void* arg) {
     return 0;
 }
 
-void Server_Receiver_run() {
+void Client_Receiver_run() {
     thread = SDL_CreateThread(thread_fun, "receiever_thread", &shared_pool);
 }
 
-void Server_Receiver_stop() {
+void Client_Receiver_stop() {
     int value;
     SDL_WaitThread(thread, &value);
-    printf("Value is %d\n", value);
 }

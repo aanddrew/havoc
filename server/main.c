@@ -31,6 +31,18 @@ void add_client(IPaddress addr) {
     }
 }
 
+UDPpacket* create_packet(void* buffer, int len) {
+    UDPpacket* sent = SDLNet_AllocPacket(1024);
+    for(int i = 0; i < len; i++) {
+        ((char*)sent->data)[i] = ((char*)buffer)[i];
+    }
+    sent->len = len;
+    sent->channel = -1;
+    sent->status = sent->len;
+
+    return sent;
+}
+
 int main() {
     SDL_Init(0);
     SDLNet_Init();
@@ -59,17 +71,13 @@ int main() {
             add_client(packet->address);
             Server_Sender_add_client(packet->address);
 
-            SDL_LockMutex(shared_pool.sending_mutex);
-                UDPpacket* sent = SDLNet_AllocPacket(1024);
-                char* msg = "Hello, new client";
-                for(int i = 0; i < strlen(msg) + 1; i++) {
-                    ((char*)sent->data)[i] = msg[i];
-                }
-                sent->len = strlen(msg) + 1;
-                sent->channel = -1;
-                sent->status = sent->len;
-                Vector_push(shared_pool.sending, sent);
-            SDL_UnlockMutex(shared_pool.sending_mutex);
+            if (!strcmp(((char*)packet->data), "connect")) {
+                SDL_LockMutex(shared_pool.sending_mutex);
+                    UDPpacket* sent = create_packet("granted", 8);
+                    Vector_push(shared_pool.sending, sent);
+                SDL_UnlockMutex(shared_pool.sending_mutex);
+            }
+
             SDLNet_FreePacket(packet);
         }
     }

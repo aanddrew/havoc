@@ -9,6 +9,10 @@
 #include "engine/Controller.h"
 #include "engine/Projectile.h"
 
+#include "network/Client_Pool.h"
+#include "network/Client_Sender.h"
+#include "network/Client_Receiver.h"
+
 #ifdef WIN32
     #define strdup _strdup
 #endif
@@ -17,7 +21,19 @@ int main(int argc, char** argv)
 {
     Window* window = Window_init();
     Proj_init_all_sprites(window->renderer);
+
+    /* Initialize Network */
+
+    Pool_init();
+    Client_Receiver_init(21433);
+    Client_Sender_init(21432);
+    Client_Sender_connect("127.0.0.1");
+
+    Client_Receiver_run();
+    Client_Sender_run();
  
+    /* Initialize Game */
+
     Dolly wiz;
     Dolly_init_with_sprites(&wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
 
@@ -82,7 +98,7 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
-        //Proj_update(&z, p.sprite->rect.x, p.sprite->rect.y);
+
         float dt_float = ((float) dt) / 1000.0f;
         Controller_update(&c, dt_float, &cam);
         Proj_update_all(dt_float);
@@ -98,5 +114,15 @@ int main(int argc, char** argv)
     Dolly_delete(&wiz);
     Proj_cleanup_all_sprites();
     Window_delete(window);
+
+    SDL_LockMutex(shared_pool.running_mutex);
+        shared_pool.running = 0;
+    SDL_UnlockMutex(shared_pool.running_mutex);
+
+    Client_Receiver_stop();
+    Client_Sender_stop();
+
+    Client_Receiver_deinit();
+    Client_Sender_deinit();
 	return 0;
 }
