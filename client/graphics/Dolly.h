@@ -7,8 +7,8 @@
 #include "../../utils/Vector.h"
 
 typedef struct {
-    Vector* surfaces;
-    Vector* textures;
+    Vector surfaces;
+    Vector textures;
     SDL_Rect rect;
     float angle;
     int offset;

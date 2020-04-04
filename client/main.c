@@ -9,8 +9,6 @@
 #include "engine/Controller.h"
 #include "engine/Projectile.h"
 
-#include "network/Network.h"
-
 #ifdef WIN32
     #define strdup _strdup
 #endif
@@ -18,8 +16,6 @@
 int main(int argc, char** argv)
 {
     Window* window = Window_init();
-    Network_init();
-    Network_send();
     Proj_init_all_sprites(window->renderer);
  
     Dolly wiz;
@@ -102,6 +98,5 @@ int main(int argc, char** argv)
     Dolly_delete(&wiz);
     Proj_cleanup_all_sprites();
     Window_delete(window);
-    Network_deinit();
 	return 0;
 }

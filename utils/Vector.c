@@ -2,18 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-Vector* Vector_init() {
-    Vector* newvec = malloc(sizeof(Vector));
-    newvec->size = 4;
-    newvec->num = 0;
-    newvec->array = malloc(sizeof(void*) * newvec->size);
-
-    return newvec;
+void Vector_init(Vector* vec) {
+    vec->size = 4;
+    vec->num = 0;
+    vec->array = malloc(sizeof(void*) * vec->size);
 }
 
 void Vector_delete(Vector* vec) {
     free(vec->array);
-    free(vec);
 }
 
 void Vector_push(Vector* vec, void* element) {

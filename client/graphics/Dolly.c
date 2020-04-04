@@ -5,8 +5,8 @@
 #include <string.h>
 
 void Dolly_init(Dolly* self) {
-    self->surfaces = Vector_init();
-    self->textures = Vector_init();
+    Vector_init(&self->surfaces);
+    Vector_init(&self->textures);
 
     self->rect.x = 0;
     self->rect.y = 0;
@@ -32,8 +32,8 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
             printf("error loading texture file %s: %s\n", name, SDL_GetError());
             return 0;
         }
-        Vector_push(self->surfaces, surface);
-        Vector_push(self->textures, texture);
+        Vector_push(&self->surfaces, surface);
+        Vector_push(&self->textures, texture);
     }
     free(name);
     return 1;
@@ -42,12 +42,12 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
 void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam) {
     SDL_Rect rect_copy = self->rect;
     SDL_Rect camera_rect;
-    for(int i = 0; i < self->textures->num; i++) {
+    for(int i = 0; i < self->textures.num; i++) {
         rect_copy.y -= self->offset;
         Camera_transform_rect(cam, &rect_copy, &camera_rect);
         SDL_RenderCopyEx(
                 window_renderer, 
-                Vector_get(self->textures, i),
+                Vector_get(&self->textures, i),
                 NULL, 
                 &camera_rect, 
                 (double) (self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI ,
@@ -73,12 +73,12 @@ int Dolly_getX(Dolly* self) {return self->rect.x;}
 int Dolly_getY(Dolly* self) {return self->rect.y;}
 
 void Dolly_delete(Dolly* self) {
-    for(int i = 0; i < self->surfaces->num; i++) {
-        SDL_FreeSurface(Vector_get(self->surfaces, i));
+    for(int i = 0; i < self->surfaces.num; i++) {
+        SDL_FreeSurface(Vector_get(&self->surfaces, i));
     }
-    for(int i = 0; i < self->textures->num; i++) {
-        SDL_DestroyTexture(Vector_get(self->textures, i));
+    for(int i = 0; i < self->textures.num; i++) {
+        SDL_DestroyTexture(Vector_get(&self->textures, i));
     }
-    Vector_delete(self->surfaces);
-    Vector_delete(self->textures);
+    Vector_delete(&self->surfaces);
+    Vector_delete(&self->textures);
 }

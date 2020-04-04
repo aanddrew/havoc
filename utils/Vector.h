@@ -7,7 +7,7 @@ typedef struct {
     int size;
 } Vector;
 
-Vector* Vector_init();
+void Vector_init(Vector* vec);
 void Vector_delete(Vector* vec);
 
 void Vector_push(Vector* vec, void* element);
