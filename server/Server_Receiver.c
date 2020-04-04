@@ -41,6 +41,9 @@ static int thread_fun(void* arg) {
                 Vector_push(pool->received, new_pack);
             SDL_UnlockMutex(pool->received_mutex);
         }
+        SDL_LockMutex(pool->running_mutex);
+            running = pool->running;
+        SDL_UnlockMutex(pool->running_mutex);
     }
     SDLNet_FreePacket(pack);
     return 0;

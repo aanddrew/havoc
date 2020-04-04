@@ -17,5 +17,7 @@ void Pool_init() {
 }
 
 void Pool_deinit() {
-    
+    SDL_DestroyMutex(shared_pool.received_mutex);
+    SDL_DestroyMutex(shared_pool.sending_mutex);
+    SDL_DestroyMutex(shared_pool.running_mutex);
 }
