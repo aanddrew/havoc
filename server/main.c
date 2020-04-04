@@ -36,8 +36,8 @@ int main() {
     SDLNet_Init();
 
     Pool_init();
-    Server_Receiver_init(6969);
-    Server_Sender_init(6970);
+    Server_Receiver_init(23432);
+    Server_Sender_init(23433);
 
     Server_Receiver_run();
     Server_Sender_run();

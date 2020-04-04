@@ -40,7 +40,7 @@ void Server_Sender_add_client(IPaddress addr) {
     if (which_client(addr) < 0) {
         printf("Adding client %s\n", SDLNet_ResolveIP(&addr));
         IPaddress new_address;
-        SDLNet_ResolveHost(&new_address, SDLNet_ResolveIP(&addr), 6970);
+        SDLNet_ResolveHost(&new_address, SDLNet_ResolveIP(&addr), 21433);
         int channel = SDLNet_UDP_Bind(socket, num_clients, &new_address);
         if(channel==-1) {
             printf("SDLNet_UDP_Bind: %s\n", SDL_GetError());

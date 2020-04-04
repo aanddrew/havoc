@@ -15,8 +15,6 @@ void Server_Receiver_init(short port) {
     sock = SDLNet_UDP_Open(port);
 }
 
-static int done = 0;
-
 void Clone_packet(UDPpacket* source, UDPpacket* dest) {
     dest->channel = source->channel;
     for(int i = 0; i < source->len; i++) {
@@ -28,13 +26,16 @@ void Clone_packet(UDPpacket* source, UDPpacket* dest) {
     dest->address = source->address;
 }
 
+static int running = 1;
+
 static int thread_fun(void* arg) {
     pool_t* pool = (pool_t*) arg;
 
     UDPpacket* pack = SDLNet_AllocPacket(1024);
-    while(!done) {
+    while(running) {
         int numrecv = SDLNet_UDP_Recv(sock, pack);
         if (numrecv) {
+            printf("receiv");
             UDPpacket* new_pack = SDLNet_AllocPacket(1024);
             Clone_packet(pack, new_pack);
             SDL_LockMutex(pool->received_mutex);
