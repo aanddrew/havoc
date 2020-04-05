@@ -8,27 +8,14 @@
 
 #include "../../utils/Vector.h"
 
-static UDPsocket sock;
 static SDL_Thread* thread;
 
-void Client_Receiver_init(short port) {
-    sock = SDLNet_UDP_Open(port);
+void Client_Receiver_init() {
+
 }
 
 void Client_Receiver_deinit() {
-    SDLNet_UDP_Close(sock);
-    sock = NULL;
-}
 
-void Clone_packet(UDPpacket* source, UDPpacket* dest) {
-    dest->channel = source->channel;
-    for(int i = 0; i < source->len; i++) {
-        dest->data[i] = source->data[i];
-    }
-    dest->len = source->len;
-    dest->maxlen = source->maxlen;
-    dest->status = source->status;
-    dest->address = source->address;
 }
 
 static int running = 1;
@@ -36,22 +23,29 @@ static int running = 1;
 static int thread_fun(void* arg) {
     pool_t* pool = (pool_t*) arg;
 
-    UDPpacket* pack = SDLNet_AllocPacket(1024);
+    char buffer[PACKET_SIZE];
     while(running) {
-        int numrecv = SDLNet_UDP_Recv(sock, pack);
+        int numrecv = 0;
+        SDL_LockMutex(shared_pool.server_mutex);
+            if (SDLNet_CheckSockets(shared_pool.server_set, 0) > 0) {
+                if (SDLNet_SocketReady(shared_pool.server)) {
+                    numrecv = SDLNet_TCP_Recv(shared_pool.server, buffer, PACKET_SIZE);
+                }
+            }
+        SDL_UnlockMutex(shared_pool.server_mutex);
+
         if (numrecv) {
-            UDPpacket* new_pack = SDLNet_AllocPacket(1024);
-            Clone_packet(pack, new_pack);
+            Packet* newpack = Packet_create(buffer, numrecv, 0);
             SDL_LockMutex(pool->received_mutex);
-                printf("%s says: %s\n", SDLNet_ResolveIP(&pack->address), pack->data);
-                Vector_push(pool->received, new_pack);
+                printf("Server says: %s\n", buffer);
+                Vector_push(pool->received, newpack);
             SDL_UnlockMutex(pool->received_mutex);
         }
+
         SDL_LockMutex(pool->running_mutex);
             running = pool->running;
         SDL_UnlockMutex(pool->running_mutex);
     }
-    SDLNet_FreePacket(pack);
     return 0;
 }
 

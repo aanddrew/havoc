@@ -12,6 +12,7 @@
 #include "network/Client_Pool.h"
 #include "network/Client_Sender.h"
 #include "network/Client_Receiver.h"
+#include "network/Network.h"
 
 #ifdef WIN32
     #define strdup _strdup
@@ -24,14 +25,13 @@ int main(int argc, char** argv)
 
     /* Initialize Network */
 
-    Pool_init();
-    SDLNet_Init();
-    Client_Receiver_init(21433);
-    Client_Sender_init(21432);
-    Client_Sender_connect("198.58.109.228");
-
-    Client_Receiver_run();
-    Client_Sender_run();
+    int online = 0;
+    Network_init();
+    online = Network_connect("127.0.0.1");
+    if (!online) {
+        printf("You are offline\n");
+        Network_deinit();
+    }
  
     /* Initialize Game */
 
@@ -116,15 +116,13 @@ int main(int argc, char** argv)
     Proj_cleanup_all_sprites();
     Window_delete(window);
 
-    SDL_LockMutex(shared_pool.running_mutex);
-        shared_pool.running = 0;
-    SDL_UnlockMutex(shared_pool.running_mutex);
+    if (online) {
+        SDL_LockMutex(shared_pool.running_mutex);
+            shared_pool.running = 0;
+        SDL_UnlockMutex(shared_pool.running_mutex);
 
-    Client_Receiver_stop();
-    Client_Sender_stop();
-
-    Client_Receiver_deinit();
-    Client_Sender_deinit();
-    SDLNet_Quit();
+        Network_disconnect();
+        Network_deinit();
+    }
 	return 0;
 }

@@ -8,48 +8,13 @@
 #include "Server_Sender.h"
 #include "Server_Pool.h"
 
-typedef struct {
-    IPaddress addr;
-} Client;
-
-#define MAX_CLIENTS 16
-static IPaddress clients[MAX_CLIENTS];
-int num_clients = 0;
-
-int which_client(IPaddress addr) {
-    for(int i = 0; i < num_clients; i++) {
-        if (addr.port == clients[i].port && addr.host == clients[i].host)
-            return i;
-    }
-    return -1;
-}
-
-void add_client(IPaddress addr) {
-    if (which_client(addr) < 0) {
-        clients[num_clients] = addr;
-        num_clients++;
-    }
-}
-
-UDPpacket* create_packet(void* buffer, int len) {
-    UDPpacket* sent = SDLNet_AllocPacket(1024);
-    for(int i = 0; i < len; i++) {
-        ((char*)sent->data)[i] = ((char*)buffer)[i];
-    }
-    sent->len = len;
-    sent->channel = -1;
-    sent->status = sent->len;
-
-    return sent;
-}
-
 int main() {
     SDL_Init(0);
     SDLNet_Init();
 
     Pool_init();
     Server_Receiver_init(23432);
-    Server_Sender_init(23433);
+    Server_Sender_init();
 
     Server_Receiver_run();
     Server_Sender_run();
@@ -65,25 +30,23 @@ int main() {
             }
         SDL_UnlockMutex(shared_pool.received_mutex);
         while(v->num > 0) {
-            UDPpacket* packet = Vector_pop(v);
-            printf("%s\n", packet->data);
-            
-            add_client(packet->address);
-            Server_Sender_add_client(packet->address);
-
-            if (!strcmp(((char*)packet->data), "connect")) {
-                SDL_LockMutex(shared_pool.sending_mutex);
-                    UDPpacket* sent = create_packet("granted", 8);
-                    Vector_push(shared_pool.sending, sent);
-                SDL_UnlockMutex(shared_pool.sending_mutex);
-            }
-
-            SDLNet_FreePacket(packet);
+            Packet* message = Vector_pop(v);
+            printf("%s\n", message->data);
+            free(message);
         }
+        char* msg = "hello, client";
+        SDL_LockMutex(shared_pool.sending_mutex);
+            Packet* pack = Packet_create((Uint8*) msg, strlen(msg) + 1, 0);
+            Vector_push(shared_pool.sending, pack);
+        SDL_UnlockMutex(shared_pool.sending_mutex);
+        SDL_Delay(100);
     }
 
     Server_Receiver_stop();
     Server_Sender_stop();
+
+    Server_Receiver_deinit();
+    Server_Sender_deinit();
 
     SDLNet_Quit();
     return 0;

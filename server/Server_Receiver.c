@@ -8,53 +8,123 @@
 
 #include "../utils/Vector.h"
 
-static UDPsocket sock;
-static SDL_Thread* thread;
+static IPaddress server_ip;
+
+static TCPsocket server;
+SDL_mutex* server_mutex;
+
+static SDL_Thread* client_threads[MAX_CLIENTS];
+static char* client_thread_names[MAX_CLIENTS];
+
+static SDL_Thread* listen_thread;
 
 void Server_Receiver_init(short port) {
-    sock = SDLNet_UDP_Open(port);
+    SDLNet_ResolveHost(&server_ip, NULL, port);
+
+    server = SDLNet_TCP_Open(&server_ip);
+    server_mutex = SDL_CreateMutex();
 }
 
-void Clone_packet(UDPpacket* source, UDPpacket* dest) {
-    dest->channel = source->channel;
-    for(int i = 0; i < source->len; i++) {
-        dest->data[i] = source->data[i];
-    }
-    dest->len = source->len;
-    dest->maxlen = source->maxlen;
-    dest->status = source->status;
-    dest->address = source->address;
+void Server_Receiver_deinit() {
+    SDLNet_TCP_Close(server);
 }
 
 static int running = 1;
+#define PACKET_SIZE 64
 
-static int thread_fun(void* arg) {
-    pool_t* pool = (pool_t*) arg;
+static int client_fun(void* arg) {
+    int id = *((int*) arg);
+    printf("Starting thread for client %d\n", id);
 
-    UDPpacket* pack = SDLNet_AllocPacket(1024);
+    TCPsocket client = shared_pool.clients[id].socket;
+    SDL_mutex* client_mutex = shared_pool.clients[id].mutex;
+
+    SDLNet_SocketSet client_set = SDLNet_AllocSocketSet(1);
+    SDLNet_TCP_AddSocket(client_set, client);
+
+    //temp buffer to store messages received
+    Uint8 temp[PACKET_SIZE];
     while(running) {
-        int numrecv = SDLNet_UDP_Recv(sock, pack);
-        if (numrecv) {
-            UDPpacket* new_pack = SDLNet_AllocPacket(1024);
-            Clone_packet(pack, new_pack);
-            SDL_LockMutex(pool->received_mutex);
-                Vector_push(pool->received, new_pack);
-            SDL_UnlockMutex(pool->received_mutex);
+        int numrecv = 0;
+        SDL_LockMutex(client_mutex);
+        if (SDLNet_CheckSockets(client_set, 0) > 0) {
+            if (SDLNet_SocketReady(client)) {
+                numrecv = SDLNet_TCP_Recv(client, temp, PACKET_SIZE);
+            }
         }
-        SDL_LockMutex(pool->running_mutex);
-            running = pool->running;
-        SDL_UnlockMutex(pool->running_mutex);
+        SDL_UnlockMutex(client_mutex);
+
+        //create the packet and put it in the received buffer
+        if (numrecv) {
+            Packet* pack = Packet_create(temp, numrecv, id);
+
+            SDL_LockMutex(shared_pool.received_mutex);
+                Vector_push(shared_pool.received, pack);
+            SDL_UnlockMutex(shared_pool.received_mutex);
+        }
+        SDL_LockMutex(shared_pool.running_mutex);
+            running = shared_pool.running;
+        SDL_UnlockMutex(shared_pool.running_mutex);
     }
-    SDLNet_FreePacket(pack);
+
+    printf("Stopping thread for client %d\n", id);
+    return 0;
+} 
+static int listen_fun(void* arg) {
+    printf("Starting listening thread\n");
+    //listens on the servers port and adds clients that connect
+    const char* connect_msg = "Connection Granted";
+    while(running) {
+        TCPsocket client = SDLNet_TCP_Accept(server);
+        if (!client) {
+            SDL_Delay(100);
+            continue;
+        }
+        SDLNet_TCP_Send(client, connect_msg, strlen(connect_msg) + 1);
+
+        //increment num_clients
+        SDL_LockMutex(shared_pool.num_clients_mutex);
+            int num_clients = shared_pool.num_clients;
+            shared_pool.num_clients++;
+        SDL_UnlockMutex(shared_pool.num_clients_mutex);
+
+        //add this client to the array
+        SDL_LockMutex(shared_pool.clients[num_clients].mutex);
+            shared_pool.clients[num_clients].socket = client;
+        SDL_UnlockMutex(shared_pool.clients[num_clients].mutex);
+        
+        //allocate a name for the thread
+        client_thread_names[num_clients] = malloc(128);
+        sprintf(client_thread_names[num_clients], "client_thread_%d", num_clients);
+
+        //finally create the thread for this client
+        client_threads[num_clients] = SDL_CreateThread(
+                client_fun, 
+                client_thread_names[num_clients], 
+                &shared_pool.clients[num_clients].id
+        );
+    }
+
+    SDL_LockMutex(shared_pool.num_clients_mutex);
+        int num_clients = shared_pool.num_clients;
+    SDL_LockMutex(shared_pool.num_clients_mutex);
+
+    for(int i = 0; i < num_clients; i++) {
+        int ret;
+        SDL_WaitThread(client_threads[i], &ret);
+    }
+
+    printf("Stopping listening thread\n");
     return 0;
 }
 
 void Server_Receiver_run() {
-    thread = SDL_CreateThread(thread_fun, "receiever_thread", &shared_pool);
+    //starts the listen thread which accepts clients
+    listen_thread= SDL_CreateThread(listen_fun, "listener_thread", NULL);
 }
 
 void Server_Receiver_stop() {
     int value;
-    SDL_WaitThread(thread, &value);
+    SDL_WaitThread(listen_thread, &value);
     printf("Value is %d\n", value);
 }
