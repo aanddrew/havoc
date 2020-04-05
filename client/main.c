@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
     int online = 0;
     Network_init();
-    online = Network_connect("127.0.0.1");
+    online = Network_connect("198.58.109.228");
     if (!online) {
         printf("You are offline\n");
         Network_deinit();
@@ -144,9 +144,16 @@ int main(int argc, char** argv)
             while(incoming->num > 0) {
                 UDPpacket* pack = Vector_pop(incoming);
                 Uint32 id = SDLNet_Read32(pack->data);
-                printf("Received packet of length %d, id: %d\n", pack->len, id);
+                //printf("Received packet of length %d, id: %d\n", pack->len, id);
                 //update other player's information, dont care about ourself
                 if (id != our_id) {
+                    if (players[id] == NULL) {
+                        players[id] = malloc(sizeof(Player));
+                        Player_init_wizard(players[id], window->renderer);
+                    }
+                    if (pack->len != 28)
+                        continue;
+
                     //same order as it was written in 
                     Uint32 x = SDLNet_Read32(pack->data + 4);
                     Uint32 y = SDLNet_Read32(pack->data + 8);
@@ -170,6 +177,7 @@ int main(int argc, char** argv)
                             players[id]->vel.x,
                             players[id]->vel.y);
                 }
+                SDLNet_FreePacket(pack);
             }
         }
 

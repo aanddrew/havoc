@@ -28,7 +28,6 @@ static int thread_fun(void* arg) {
             UDPpacket* pack = Vector_pop(pool->sending);
             pack->address = shared_pool.server_address;
             SDL_LockMutex(pool->server_mutex);
-                printf("Sending packet\n");
                 SDLNet_UDP_Send(pool->server, -1, pack);
             SDL_UnlockMutex(pool->server_mutex);
             SDLNet_FreePacket(pack);
