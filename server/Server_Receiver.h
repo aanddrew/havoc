@@ -9,8 +9,10 @@
 void Server_Receiver_init(short port);
 void Server_Receiver_deinit();
 
-int Server_Receiver_getbytes(Uint8* output, int size);
-int Server_Receiver_queue_full_slots();
+int Server_Receiver_getbytes(int client_id, Uint8* output, int size);
+int Server_Receiver_queue_full_slots(int client_id);
+int Server_Receiver_num_clients();
+int Server_Receiver_is_client_active(int c);
 
 void Server_Receiver_run();
 void Server_Receiver_stop();

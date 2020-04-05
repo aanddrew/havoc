@@ -26,24 +26,32 @@ int main() {
 
     Vector* v = malloc(sizeof(Vector));
     Vector_init(v);
+    Uint8* buffer = malloc(4096);
     while(1) {
-        int queuesize = Server_Receiver_queue_full_slots();
-        if (queuesize > 28) {
-            int num_to_read = queuesize - (queuesize % 28);
-            Uint8* buffer = malloc(num_to_read);
-            Server_Receiver_getbytes(buffer, num_to_read);
+        for(int c = 0; c < MAX_CLIENTS; c++) {
+            int active = Server_Receiver_is_client_active(c);
+            if (!active) continue;
 
-            for(int i = 0; i < num_to_read; i+= 28) {
-                Uint32 id = SDLNet_Read32(buffer);
-                if (id >= MAX_CLIENTS) continue;
-                printf("Packet came from id %d\n", id);
-                Packet* outgoing = Packet_create(buffer + i, 28, id);
-                SDL_LockMutex(shared_pool.sending_mutex);
-                    Vector_push(shared_pool.sending, outgoing);
-                SDL_UnlockMutex(shared_pool.sending_mutex);
+            int queuesize = Server_Receiver_queue_full_slots(c);
+            if (queuesize > 28) {
+                int num_to_read = queuesize - (queuesize % 28);
+                Server_Receiver_getbytes(c, buffer, num_to_read);
+
+                for(int i = 0; i < num_to_read; i+= 28) {
+                    Uint32 id = SDLNet_Read32(buffer);
+                    if (id >= MAX_CLIENTS) continue;
+                    printf("Packet came from id %d, c = %d\n", id, c);
+                    if ((Uint32) c != id) continue;
+                    Packet* outgoing = Packet_create(buffer + i, 28, id);
+                    SDL_LockMutex(shared_pool.sending_mutex);
+                        Vector_push(shared_pool.sending, outgoing);
+                    SDL_UnlockMutex(shared_pool.sending_mutex);
+                }
             }
         }
+        SDL_Delay(10);
     }
+    free(buffer);
 
     Server_Receiver_stop();
     Server_Sender_stop();

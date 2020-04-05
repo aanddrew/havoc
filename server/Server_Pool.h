@@ -2,6 +2,7 @@
 #define SERVER_POOL_H
 
 #include "../utils/Vector.h"
+#include "../client/network/ByteQueue.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_net.h>
@@ -15,6 +16,8 @@
 typedef struct {
     TCPsocket socket;
     SDL_mutex* mutex;
+    ByteQueue* queue;
+    SDL_mutex* queue_mutex;
     int id;
 } Client;
 

@@ -12,10 +12,6 @@ void ByteQueue_deinit(ByteQueue* self) {
 }
 
 int ByteQueue_getbytes(ByteQueue* self, Uint8* output, int num) {
-    int offset = 0;
-    if (self->tail < self->head) {
-        offset = self->max_size;
-    }
     //if there are'nt even this many bytes in the queue
     if (self->tail - self->head + self->max_size < num) {
         return 0;
@@ -39,6 +35,7 @@ int ByteQueue_insert(ByteQueue* self, Uint8* input, int len) {
         self->data[(self->tail + i) % self->max_size] = input[i];
     }
     self->tail = (self->tail + len) % self->max_size;
+    return 1;
 }
 
 int ByteQueue_full(ByteQueue* self) {

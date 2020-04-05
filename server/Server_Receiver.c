@@ -15,17 +15,29 @@
 static ByteQueue queue;
 static SDL_mutex* queue_mutex;
 
-int Server_Receiver_getbytes(Uint8* output, int size) {
-    SDL_LockMutex(queue_mutex);
-        int ret = ByteQueue_getbytes(&queue, output, size);
-    SDL_UnlockMutex(queue_mutex);
+int Server_Receiver_is_client_active(int c) {
+    SDL_LockMutex(shared_pool.num_clients_mutex);
+        int num_clients = shared_pool.num_clients;
+    SDL_UnlockMutex(shared_pool.num_clients_mutex);
+    if (c >= num_clients || c < 0) {
+        return 0;
+    }
+    return 1;
+}
+
+int Server_Receiver_getbytes(int client_id, Uint8* output, int size) {
+    Client* this_client = &shared_pool.clients[client_id];
+    SDL_LockMutex(this_client->queue_mutex);
+        int ret = ByteQueue_getbytes(this_client->queue, output, size);
+    SDL_UnlockMutex(this_client->queue_mutex);
     return ret;
 }
 
-int Server_Receiver_queue_full_slots() {
-    SDL_LockMutex(queue_mutex);
-        int ret = ByteQueue_full(&queue);
-    SDL_UnlockMutex(queue_mutex);
+int Server_Receiver_queue_full_slots(int client_id) {
+    Client* this_client = &shared_pool.clients[client_id];
+    SDL_LockMutex(this_client->queue_mutex);
+        int ret = ByteQueue_full(this_client->queue);
+    SDL_UnlockMutex(this_client->queue_mutex);
     return ret;
 }
 
@@ -68,6 +80,7 @@ static int client_fun(void* arg) {
 
     TCPsocket client = shared_pool.clients[id].socket;
     SDL_mutex* client_mutex = shared_pool.clients[id].mutex;
+    Client* this_client = &shared_pool.clients[id];
 
     SDLNet_SocketSet client_set = SDLNet_AllocSocketSet(1);
     SDLNet_TCP_AddSocket(client_set, client);
@@ -89,14 +102,13 @@ static int client_fun(void* arg) {
 
         // This is where we actually put the message in the queue
         if (numrecv) {
-            printf("numrecv = %d\n", numrecv);
             Uint8 id_array[4];
             SDLNet_Write32(id, id_array);
 
-            SDL_LockMutex(queue_mutex);
-                ByteQueue_insert(&queue, id_array, 4);
-                ByteQueue_insert(&queue, temp, numrecv);
-            SDL_UnlockMutex(queue_mutex);
+            SDL_LockMutex(this_client->queue_mutex);
+                ByteQueue_insert(this_client->queue, id_array, 4);
+                ByteQueue_insert(this_client->queue, temp, numrecv);
+            SDL_UnlockMutex(this_client->queue_mutex);
         }
 
         SDL_LockMutex(shared_pool.running_mutex);
@@ -110,8 +122,10 @@ static int client_fun(void* arg) {
 
 //This function just listens for new connections on the server's port
 static int listen_fun(void* arg) {
+    if (arg != NULL) {
+        printf("Warning, non-null argument passed to listen_fun\n");
+    }
     printf("Starting listening thread\n");
-    const char* connect_msg = "Connection Granted";
     while(running) {
         //get the number of clients
         SDL_LockMutex(shared_pool.num_clients_mutex);
@@ -135,9 +149,14 @@ static int listen_fun(void* arg) {
         SDL_UnlockMutex(shared_pool.num_clients_mutex);
 
         //add this client to the array
-        SDL_LockMutex(shared_pool.clients[num_clients].mutex);
-            shared_pool.clients[num_clients].socket = client;
-        SDL_UnlockMutex(shared_pool.clients[num_clients].mutex);
+        Client* this_client = &shared_pool.clients[num_clients];
+        this_client->mutex = SDL_CreateMutex();
+        this_client->queue_mutex = SDL_CreateMutex();
+        this_client->queue = malloc(sizeof(ByteQueue));
+        ByteQueue_init(this_client->queue, QUEUE_SIZE);
+        SDL_LockMutex(this_client->mutex);
+            this_client->socket = client;
+        SDL_UnlockMutex(this_client->mutex);
         
         //allocate a name for the thread
         client_thread_names[num_clients] = malloc(128);
@@ -147,7 +166,7 @@ static int listen_fun(void* arg) {
         client_threads[num_clients] = SDL_CreateThread(
                 client_fun, 
                 client_thread_names[num_clients], 
-                &shared_pool.clients[num_clients].id
+                &this_client->id
         );
     }
 
