@@ -72,5 +72,5 @@ void Network_send_packet(Packet* packet) {
 }
 
 Uint32 Network_get_our_id() {
-    
+    return our_id;
 }

@@ -13,8 +13,8 @@ Window* Window_init() {
 		"havoc", 
 		100, 
 		100, 
-		640, 
-		480, 
+		1280, 
+		720, 
 		SDL_WINDOW_RESIZABLE
 	);
 	window->renderer = SDL_CreateRenderer(window->window, -1, SDL_RENDERER_PRESENTVSYNC);

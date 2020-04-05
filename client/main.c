@@ -27,13 +27,16 @@ int main(int argc, char** argv)
 
     int online = 0;
     Network_init();
-    online = Network_connect("127.0.0.1");
+    online = Network_connect("198.58.109.228");
     if (!online) {
         printf("You are offline\n");
         Network_deinit();
     }
 
-    int our_id = Network_get_our_id();
+    int our_id = 0;
+    if (online) {
+        our_id = (int)Network_get_our_id();
+    } 
  
     /* Initialize Game */
 
@@ -61,6 +64,8 @@ int main(int argc, char** argv)
     Controller_init(&c);
     c.player = players[our_id];
     c.cam = &cam;
+
+    SDL_Delay(500);
 
     Vector* incoming_packets = malloc(sizeof(Vector));
     Vector_init(incoming_packets);
@@ -105,49 +110,46 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
-        /* Send Network Packets */
-        Uint8 data[64];
-        Uint32 my_x = *( (int*) &(players[our_id]->pos.x));
-        Uint32 my_y = *( (int*) &(players[our_id]->pos.y));
-        
-        SDLNet_Write32(my_x, data);
-        SDLNet_Write32(my_y, data + 4);
+        if (online) {
+            /* Send Network Packets */
+            Uint8 data[64];
+            Uint32 my_x = *((int*)&(players[our_id]->pos.x));
+            Uint32 my_y = *((int*)&(players[our_id]->pos.y));
 
-        Packet* pack = Packet_create(data, 8, 0);
-        Network_send_packet(pack);
+            SDLNet_Write32(my_x, data);
+            SDLNet_Write32(my_y, data + 4);
 
-        /* Receive Network Packets */
+            Packet* pack = Packet_create(data, 8, 0);
+            Network_send_packet(pack);
 
-        SDL_LockMutex(shared_pool.received_mutex);
+            /* Receive Network Packets */
+
+            SDL_LockMutex(shared_pool.received_mutex);
             if (shared_pool.received->num > 0) {
                 Vector* temp = incoming_packets;
                 incoming_packets = shared_pool.received;
                 shared_pool.received = temp;
             }
-        SDL_UnlockMutex(shared_pool.received_mutex);
-        while(incoming_packets->num > 0) {
-            Packet* message = Vector_pop(incoming_packets);
+            SDL_UnlockMutex(shared_pool.received_mutex);
+            while (incoming_packets->num > 0) {
+                Packet* message = Vector_pop(incoming_packets);
+                Packet_destroy(message);
+            }
 
-            Uint32 id = SDLNet_Read32(message->data);
+            Uint8* next_12 = Client_Receiver_getbytes(12);
+
+            int id = SDLNet_Read32(next_12);
             if (players[id] == NULL) {
                 players[id] = malloc(sizeof(Player));
                 Player_init_wizard(players[id], window->renderer);
             }
 
             if (id != our_id) {
-                Uint32 x = SDLNet_Read32(message->data + 4);
-                Uint32 y = SDLNet_Read32(message->data + 8);
-                players[id]->pos.x = *((float*) &x);
-                players[id]->pos.y = *((float*) &y);
+                Uint32 x = SDLNet_Read32(next_12 + 4);
+                Uint32 y = SDLNet_Read32(next_12 + 8);
+                players[id]->pos.x = *((float*)&x);
+                players[id]->pos.y = *((float*)&y);
             }
-
-            if (message->len != 12) {
-                printf("===================weird lengt===============\n");
-            }
-           
-            //printf("%x, %x: %f, %f\n", message->len, id, *((float*)&x), *((float*)&y));
-
-            Packet_destroy(message);
         }
 
         /* Update own copy of the game*/
