@@ -5,8 +5,27 @@
 
 #include "Server_Receiver.h"
 #include "Server_Pool.h"
+#include "../client/network/ByteQueue.h"
 
 #include "../utils/Vector.h"
+
+#define QUEUE_SIZE 4096
+static ByteQueue queue;
+static SDL_mutex* queue_mutex;
+
+int Server_Receiver_getbytes(Uint8* output, int size) {
+    SDL_LockMutex(queue_mutex);
+        int ret = ByteQueue_getbytes(&queue, output, size);
+    SDL_UnlockMutex(queue_mutex);
+    return ret;
+}
+
+int Server_Receiver_queue_full_slots() {
+    SDL_LockMutex(queue_mutex);
+        int ret = ByteQueue_full(&queue);
+    SDL_UnlockMutex(queue_mutex);
+    return ret;
+}
 
 static IPaddress server_ip;
 
@@ -21,11 +40,17 @@ static SDL_Thread* listen_thread;
 void Server_Receiver_init(short port) {
     SDLNet_ResolveHost(&server_ip, NULL, port);
 
+    queue_mutex = SDL_CreateMutex();
+    ByteQueue_init(&queue, QUEUE_SIZE);
+
     server = SDLNet_TCP_Open(&server_ip);
     server_mutex = SDL_CreateMutex();
 }
 
 void Server_Receiver_deinit() {
+    ByteQueue_deinit(&queue);
+    SDL_DestroyMutex(queue_mutex);
+
     SDLNet_TCP_Close(server);
 }
 
@@ -45,23 +70,29 @@ static int client_fun(void* arg) {
     //temp buffer to store messages received
     Uint8 temp[PACKET_SIZE];
     while(running) {
+        SDL_LockMutex(shared_pool.running_mutex);
+            running = shared_pool.running;
+        SDL_UnlockMutex(shared_pool.running_mutex);
         int numrecv = 0;
         SDL_LockMutex(client_mutex);
-        if (SDLNet_CheckSockets(client_set, 0) > 0) {
-            if (SDLNet_SocketReady(client)) {
-                numrecv = SDLNet_TCP_Recv(client, temp, PACKET_SIZE);
+            if (SDLNet_CheckSockets(client_set, 0) > 0) {
+                if (SDLNet_SocketReady(client)) {
+                    numrecv = SDLNet_TCP_Recv(client, temp, PACKET_SIZE);
+                }
             }
-        }
         SDL_UnlockMutex(client_mutex);
 
-        //create the packet and put it in the received buffer
         if (numrecv) {
-            Packet* pack = Packet_create(temp, numrecv, id);
+            printf("numrecv = %d\n", numrecv);
+            Uint8 id_array[4];
+            SDLNet_Write32(id, id_array);
 
-            SDL_LockMutex(shared_pool.received_mutex);
-                Vector_push(shared_pool.received, pack);
-            SDL_UnlockMutex(shared_pool.received_mutex);
+            SDL_LockMutex(queue_mutex);
+                ByteQueue_insert(&queue, id_array, 4);
+                ByteQueue_insert(&queue, temp, numrecv);
+            SDL_UnlockMutex(queue_mutex);
         }
+
         SDL_LockMutex(shared_pool.running_mutex);
             running = shared_pool.running;
         SDL_UnlockMutex(shared_pool.running_mutex);
