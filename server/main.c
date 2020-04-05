@@ -38,7 +38,7 @@ int main() {
             }
             Packet_destroy(message);
 
-            Packet* outgoing = Packet_create(buffer, 12, message->sender_id);
+            Packet* outgoing = Packet_create(buffer, 28, message->sender_id);
 
             SDL_LockMutex(shared_pool.sending_mutex);
                 Vector_push(shared_pool.sending, outgoing);

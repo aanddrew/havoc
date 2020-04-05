@@ -6,6 +6,7 @@
 
 typedef struct {
     Vector2d pos;
+    Vector2d vel;
     Vector2d look;
     Dolly* sprite;
     float speed;
@@ -14,6 +15,7 @@ typedef struct {
 void Player_init(Player* self);
 void Player_init_wizard(Player* self, SDL_Renderer* renderer);
 
+void Player_update(Player* self, float dt);
 void Player_update_sprite(Player* self);
 
 void Player_translate(Player* self, float dx, float dy);

@@ -5,64 +5,32 @@
 
 #include "Client_Receiver.h"
 #include "Client_Pool.h"
+#include "ByteQueue.h"
 
 #include "../../utils/Vector.h"
 
 static SDL_Thread* thread;
 
 #define QUEUE_SIZE 4096
-static Uint8* queue;
-static int queue_head;
-static int queue_tail;
-
+static ByteQueue queue;
 static SDL_mutex* queue_mutex;
 
 void Client_Receiver_init() {
-    queue = malloc(QUEUE_SIZE);
-    queue_head = 0;
-    queue_tail = 0;
     queue_mutex = SDL_CreateMutex();
+    ByteQueue_init(&queue, QUEUE_SIZE);
 }
 
 void Client_Receiver_deinit() {
-    free(queue);
+    ByteQueue_deinit(&queue);
     SDL_DestroyMutex(queue_mutex);
 }
 
-static void queue_insert(Packet* pack) {
-    SDL_LockMutex(queue_mutex);
-    int offset = 0;
-    if (queue_tail < queue_head) {
-        offset = QUEUE_SIZE;
-    }
-    if (queue_tail - queue_head + offset < pack->len) {
-        printf("Unable to write, queue full\n");
-        return;
-    }
-    for (int i = 0; i < pack->len; i++) {
-        queue[(queue_tail + i) % QUEUE_SIZE] = pack->data[i];
-    }
-    queue_tail = (queue_tail + pack->len) % QUEUE_SIZE;
-    SDL_UnlockMutex(queue_mutex);
+int Client_Receiver_getbytes(Uint8* output, int size) {
+    return ByteQueue_getbytes(&queue, output, size);
 }
 
-Uint8* Client_Receiver_getbytes(int size) {
-    SDL_LockMutex(queue_mutex);
-    int offset = 0;
-    if (queue_tail < queue_head) {
-        offset = QUEUE_SIZE;
-    }
-    if (queue_tail - queue_head + QUEUE_SIZE < size) {
-        return NULL;
-    }
-
-    Uint8* data = malloc(size);
-    for (int i = 0; i < size; i++) {
-        data[i] = queue[i + queue_head % QUEUE_SIZE];
-    }
-    SDL_UnlockMutex(queue_mutex);
-    queue_head = (queue_head+ size) % QUEUE_SIZE;
-    return data;
+int Client_Receiver_queue_full_slots() {
+    return ByteQueue_full(&queue);
 }
 
 static int running = 1;
@@ -82,12 +50,9 @@ static int thread_fun(void* arg) {
         SDL_UnlockMutex(shared_pool.server_mutex);
 
         if (numrecv) {
-            Packet* newpack = Packet_create(buffer, numrecv, 0);
-            SDL_LockMutex(pool->received_mutex);
-                //printf("Server says: %s\n", buffer);
-                queue_insert(newpack);
-                Vector_push(pool->received, newpack);
-            SDL_UnlockMutex(pool->received_mutex);
+            SDL_LockMutex(queue_mutex);
+                ByteQueue_insert(&queue, buffer, numrecv);
+            SDL_UnlockMutex(queue_mutex);
         }
 
         SDL_LockMutex(pool->running_mutex);

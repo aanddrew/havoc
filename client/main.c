@@ -110,46 +110,93 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
+
         if (online) {
-            /* Send Network Packets */
+            //send network packets
             Uint8 data[64];
+            //write position
             Uint32 my_x = *((int*)&(players[our_id]->pos.x));
             Uint32 my_y = *((int*)&(players[our_id]->pos.y));
-
             SDLNet_Write32(my_x, data);
             SDLNet_Write32(my_y, data + 4);
+            
+            //write velocity
+            Uint32 my_vel_x = *((int*)&(players[our_id]->vel.x));
+            Uint32 my_vel_y = *((int*)&(players[our_id]->vel.y));
+            SDLNet_Write32(my_vel_x, data + 8);
+            SDLNet_Write32(my_vel_y, data + 12);
 
-            Packet* pack = Packet_create(data, 8, 0);
+            //write look vector
+            Uint32 my_look_x = *((int*)&(players[our_id]->look.x));
+            Uint32 my_look_y = *((int*)&(players[our_id]->look.y));
+            SDLNet_Write32(my_look_x, data + 16);
+            SDLNet_Write32(my_look_y, data + 20);
+
+            Packet* pack = Packet_create(data, 24, 0);
             Network_send_packet(pack);
 
-            /* Receive Network Packets */
+            // Receive Network Packets 
 
-            SDL_LockMutex(shared_pool.received_mutex);
-            if (shared_pool.received->num > 0) {
-                Vector* temp = incoming_packets;
-                incoming_packets = shared_pool.received;
-                shared_pool.received = temp;
-            }
-            SDL_UnlockMutex(shared_pool.received_mutex);
-            while (incoming_packets->num > 0) {
-                Packet* message = Vector_pop(incoming_packets);
-                Packet_destroy(message);
-            }
+            //printf("queue size: %d\n", Client_Receiver_queuesize());
+            int queuesize = Client_Receiver_queue_full_slots();
+            #define SIZE_MSG 28
+            if (queuesize > SIZE_MSG) {
+                SDL_LockMutex(shared_pool.received_mutex);
+                if (shared_pool.received->num > 0) {
+                    Vector* temp = incoming_packets;
+                    incoming_packets = shared_pool.received;
+                    shared_pool.received = temp;
+                }
+                SDL_UnlockMutex(shared_pool.received_mutex);
+                while (incoming_packets->num > 0) {
+                    Packet* message = Vector_pop(incoming_packets);
+                    Packet_destroy(message);
+                }
 
-            Uint8* next_12 = Client_Receiver_getbytes(12);
+                int num_to_read = queuesize - (queuesize % SIZE_MSG);
+                Uint8* msg = malloc(num_to_read);
+                //printf("Reading %d bytes\n", num_to_read);
+                int read = Client_Receiver_getbytes(msg, num_to_read);
+                if (read) {
+                    for(int i = 0; i < num_to_read; i += SIZE_MSG) {
+                        int id = SDLNet_Read32(msg + i);
+                        if (id < 0 || id >= MAX_PLAYERS) {
+                            continue;
+                        }
+                        if (players[id] == NULL) {
+                            players[id] = malloc(sizeof(Player));
+                            Player_init_wizard(players[id], window->renderer);
+                        }
 
-            int id = SDLNet_Read32(next_12);
-            if (players[id] == NULL) {
-                players[id] = malloc(sizeof(Player));
-                Player_init_wizard(players[id], window->renderer);
-            }
+                        if (id != our_id) {
+                            Uint32 x = SDLNet_Read32(msg + i + 4);
+                            Uint32 y = SDLNet_Read32(msg + i + 8);
+                            players[id]->pos.x = *((float*)&x);
+                            players[id]->pos.y = *((float*)&y);
 
-            if (id != our_id) {
-                Uint32 x = SDLNet_Read32(next_12 + 4);
-                Uint32 y = SDLNet_Read32(next_12 + 8);
-                players[id]->pos.x = *((float*)&x);
-                players[id]->pos.y = *((float*)&y);
-            }
+                            Uint32 vel_x = SDLNet_Read32(msg + i + 12);
+                            Uint32 vel_y = SDLNet_Read32(msg + i + 16);
+                            players[id]->vel.x = *((float*)&vel_x);
+                            players[id]->vel.y = *((float*)&vel_y);
+
+                            Uint32 look_x = SDLNet_Read32(msg + i + 20);
+                            Uint32 look_y = SDLNet_Read32(msg + i + 24);
+                            players[id]->look.x = *((float*)&look_x);
+                            players[id]->look.y = *((float*)&look_y);
+
+                            printf("%d | %f %f : %f %f\n", 
+                                    id,
+                                    players[id]->pos.x,
+                                    players[id]->pos.y,
+                                    players[id]->vel.x,
+                                    players[id]->vel.y);
+                        }
+                    }
+                }
+                free(msg);
+
+            } //done reading from queue
+
         }
 
         /* Update own copy of the game*/
@@ -162,7 +209,7 @@ int main(int argc, char** argv)
 		
         for(int i = 0; i < MAX_PLAYERS; i++) {
             if (players[i] != NULL) {
-                Player_update_sprite(players[i]);
+                Player_update(players[i], dt_float);
                 Dolly_render(players[i]->sprite, window->renderer, &cam);
             }
         }
@@ -177,6 +224,7 @@ int main(int argc, char** argv)
             free(players[i]->sprite);
         }
     }
+
     Proj_cleanup_all_sprites();
     Window_delete(window);
 

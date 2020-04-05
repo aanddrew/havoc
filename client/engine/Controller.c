@@ -66,19 +66,22 @@ void Controller_update(Controller* self, float dt, const Camera* cam) {
 
     Vector2d mouse_pos = {mousex, mousey};
     Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->player->pos);
-    float angle = Vector2d_angle(mouse_diff);
-    self->player->sprite->angle = angle;
-
     self->player->look = mouse_diff;
 
     float dx = 0.0f;
     float dy = 0.0f;
-    if (self->pressed[UP]) { dy = -1 * self->player->speed * dt; }
-    if (self->pressed[DOWN]) { dy = self->player->speed * dt; }
-    if (self->pressed[LEFT]) { dx = -1 * self->player->speed * dt; }
-    if (self->pressed[RIGHT]) { dx = self->player->speed * dt; }
+    if (self->pressed[UP]) { dy = -1 * self->player->speed; }
+    if (self->pressed[DOWN]) { dy = self->player->speed; }
+    if (self->pressed[LEFT]) { dx = -1 * self->player->speed; }
+    if (self->pressed[RIGHT]) { dx = self->player->speed; }
 
-    Player_translate(self->player, dx, dy);
+    Vector2d newvel;
+    newvel.x = dx;
+    newvel.y = dy;
+    self->player->vel = newvel;
+
+    //Player_translate(self->player, dx, dy);
+    //Player_update(self->player, dt);
 
     if (self->pressed[CENTER_CAMERA]) { 
         Camera_set_center(self->cam, self->player->pos.x, self->player->pos.y); 
