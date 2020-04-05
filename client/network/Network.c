@@ -2,6 +2,7 @@
 #include "Client_Pool.h"
 #include "Client_Receiver.h"
 #include "Client_Sender.h"
+#include "Message.h"
 
 #include <SDL2/SDL.h>
 
@@ -29,26 +30,39 @@ int Network_connect(const char* hostname) {
         printf("Error resolving host\n");
         return 0;
     }
+    shared_pool.server_address = addr;
 
-    TCPsocket sock = SDLNet_TCP_Open(&addr);
+    UDPsocket sock = SDLNet_UDP_Open(-1);
     if (!sock) {
-        printf("Error connecting to host: %s\n", SDL_GetError());
-        return 0;
+        printf("SDLNet_UDP_Open error: %s\n", SDL_GetError());
+    }
+    if (SDLNet_UDP_Bind(sock, 0, &addr) < 0) {
+        printf("Error binding socket\n");
     }
 
-    char temp[64];
-    int done = 0;
-    while(!done) {
-        int num = SDLNet_TCP_Recv(sock, temp, 64);
-        our_id = SDLNet_Read32(temp);
+    UDPpacket* pack = SDLNet_AllocPacket(128);
+    SDLNet_Write32(CONNECT_REQUEST, pack->data);
+    pack->len = 4;
+    pack->address = addr;
+    SDLNet_UDP_Send(sock, -1, pack);
+
+    int num_tries = 0;
+    //const int max_tries = -1;
+    while(1) {
+        int num = SDLNet_UDP_Recv(sock, pack);
         if (num) {
+            our_id = SDLNet_Read32(pack->data);
             printf("Server gives us id: %d\n", our_id);
-            done = 1;
+            break;
         }
+        else {
+            //printf("No response\n");
+        }
+        //SDL_Delay(100);
     }
+    SDLNet_FreePacket(pack);
     
     shared_pool.server = sock;
-    SDLNet_TCP_AddSocket(shared_pool.server_set, shared_pool.server);
     Client_Receiver_run();
     Client_Sender_run();
 
@@ -61,11 +75,19 @@ void Network_disconnect() {
     SDL_UnlockMutex(shared_pool.running_mutex);
 
     Client_Sender_stop();
-    SDLNet_TCP_Close(shared_pool.server);
     Client_Receiver_stop();
+
+    //send a disconnect request
+    UDPpacket* pack = SDLNet_AllocPacket(4);
+    SDLNet_Write32(DISCONNECT_REQUEST, pack->data);
+    pack->len = 4;
+    SDLNet_UDP_Send(shared_pool.server, -1, pack);
+
+    //close the connection
+    SDLNet_UDP_Close(shared_pool.server);
 }
 
-void Network_send_packet(Packet* packet) {
+void Network_send_packet(UDPpacket* packet) {
     SDL_LockMutex(shared_pool.sending_mutex);
         Vector_push(shared_pool.sending, packet);
     SDL_UnlockMutex(shared_pool.sending_mutex);

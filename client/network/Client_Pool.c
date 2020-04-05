@@ -22,13 +22,13 @@ void Packet_destroy(Packet* pack) {
 
 void Pool_init() {
     shared_pool.received = malloc(sizeof(Vector));
+    shared_pool.received_swap = malloc(sizeof(Vector));
     shared_pool.sending = malloc(sizeof(Vector));
     Vector_init(shared_pool.received);
+    Vector_init(shared_pool.received_swap);
     Vector_init(shared_pool.sending);
 
     shared_pool.running = 1;
-
-    shared_pool.server_set = SDLNet_AllocSocketSet(1);
 
     shared_pool.server_mutex = SDL_CreateMutex();
     shared_pool.received_mutex = SDL_CreateMutex();
@@ -38,13 +38,13 @@ void Pool_init() {
 
 void Pool_deinit() {
     Vector_delete(shared_pool.received);
+    Vector_delete(shared_pool.received_swap);
     Vector_delete(shared_pool.sending);
     free(shared_pool.received);
+    free(shared_pool.received_swap);
     free(shared_pool.sending);
 
     shared_pool.running = 0;
-
-    SDLNet_FreeSocketSet(shared_pool.server_set);
 
     SDL_DestroyMutex(shared_pool.server_mutex);
     SDL_DestroyMutex(shared_pool.received_mutex);

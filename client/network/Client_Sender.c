@@ -25,11 +25,13 @@ static int thread_fun(void* arg) {
     while(running) {
         SDL_LockMutex(pool->sending_mutex);
         while(pool->sending->num > 0) {
-            Packet* pack = Vector_pop(pool->sending);
+            UDPpacket* pack = Vector_pop(pool->sending);
+            pack->address = shared_pool.server_address;
             SDL_LockMutex(pool->server_mutex);
-                SDLNet_TCP_Send(pool->server, pack->data, pack->len);
+                printf("Sending packet\n");
+                SDLNet_UDP_Send(pool->server, -1, pack);
             SDL_UnlockMutex(pool->server_mutex);
-            Packet_destroy(pack);
+            SDLNet_FreePacket(pack);
         }
         SDL_UnlockMutex(pool->sending_mutex);
 

@@ -39,6 +39,15 @@ int Client_Receiver_queue_full_slots() {
     return ret;
 }
 
+Vector* Client_Receiver_get_received() {
+    SDL_LockMutex(shared_pool.received_mutex);
+        Vector* temp = shared_pool.received;
+        shared_pool.received = shared_pool.received_swap;
+        shared_pool.received_swap = temp;
+    SDL_UnlockMutex(shared_pool.received_mutex);
+    return shared_pool.received_swap;
+}
+
 static int running = 1;
 
 static int thread_fun(void* arg) {
@@ -46,22 +55,17 @@ static int thread_fun(void* arg) {
 
     char buffer[PACKET_SIZE];
     while(running) {
-        int numrecv = 0;
-
+        UDPpacket* pack = SDLNet_AllocPacket(PACKET_SIZE);
         //get some bytes from the server
         SDL_LockMutex(shared_pool.server_mutex);
-            if (SDLNet_CheckSockets(shared_pool.server_set, 0) > 0) {
-                if (SDLNet_SocketReady(shared_pool.server)) {
-                    numrecv = SDLNet_TCP_Recv(shared_pool.server, buffer, PACKET_SIZE);
-                }
-            }
+            int numrecv = SDLNet_UDP_Recv(shared_pool.server, pack);
         SDL_UnlockMutex(shared_pool.server_mutex);
 
         //add them to our queue of received bytes
         if (numrecv) {
-            SDL_LockMutex(queue_mutex);
-                ByteQueue_insert(&queue, buffer, numrecv);
-            SDL_UnlockMutex(queue_mutex);
+            SDL_LockMutex(shared_pool.received_mutex);
+                Vector_push(shared_pool.received, pack);
+            SDL_UnlockMutex(shared_pool.received_mutex);
         }
 
         SDL_LockMutex(pool->running_mutex);

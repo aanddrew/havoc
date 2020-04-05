@@ -4,36 +4,33 @@
 
 pool_t shared_pool;
 
-Packet* Packet_create(Uint8* data, int len, int sender_id) {
-    Packet* pack = malloc(sizeof(Packet));
-    pack->data = malloc(len);
-    for(int i = 0; i < len; i++) {
-        pack->data[i] = data[i];
+int Pool_get_client_id(IPaddress address) {
+    SDL_LockMutex(shared_pool.clients_mutex);
+    int num_clients = shared_pool.num_clients;
+    int id = -1;
+    for(int i = 0; i < num_clients; i++) {
+        if (address.host == shared_pool.clients[i].address.host 
+                && address.port == shared_pool.clients[i].address.port)
+            id = i;
     }
-    pack->len = len;
-    pack->sender_id = sender_id;
-    return pack;
-}
-
-void Packet_destroy(Packet* pack) {
-    free(pack->data);
-    free(pack);
+    SDL_UnlockMutex(shared_pool.clients_mutex);
+    return id;
 }
 
 void Pool_init() {
     shared_pool.received = malloc(sizeof(Vector));
+    shared_pool.received_swap = malloc(sizeof(Vector));
     shared_pool.sending = malloc(sizeof(Vector));
     Vector_init(shared_pool.received);
+    Vector_init(shared_pool.received_swap);
     Vector_init(shared_pool.sending);
     shared_pool.running = 1;
 
     for(int i = 0; i < MAX_CLIENTS; i++) {
         shared_pool.clients[i].id = i;
-        shared_pool.clients[i].mutex = SDL_CreateMutex();
     }
 
-    shared_pool.num_clients_mutex = SDL_CreateMutex();
-
+    shared_pool.clients_mutex = SDL_CreateMutex();
     shared_pool.received_mutex = SDL_CreateMutex();
     shared_pool.sending_mutex = SDL_CreateMutex();
     shared_pool.running_mutex = SDL_CreateMutex();
@@ -41,16 +38,13 @@ void Pool_init() {
 
 void Pool_deinit() {
     Vector_delete(shared_pool.received);
+    Vector_delete(shared_pool.received_swap);
     Vector_delete(shared_pool.sending);
     free(shared_pool.received);
+    free(shared_pool.received_swap);
     free(shared_pool.sending);
 
-    for(int i = 0; i < MAX_CLIENTS; i++) {
-        SDL_DestroyMutex(shared_pool.clients[i].mutex);
-    }
-
-    SDL_DestroyMutex(shared_pool.num_clients_mutex);
-
+    SDL_DestroyMutex(shared_pool.clients_mutex);
     SDL_DestroyMutex(shared_pool.received_mutex);
     SDL_DestroyMutex(shared_pool.sending_mutex);
     SDL_DestroyMutex(shared_pool.running_mutex);

@@ -22,12 +22,14 @@ void Packet_destroy(Packet* pack);
 
 typedef struct {
     Vector* received;
+    Vector* received_swap;
     Vector* sending;
     int running;
 
-    TCPsocket server;
-    SDLNet_SocketSet server_set;
+    UDPsocket server;
     SDL_mutex* server_mutex;
+
+    IPaddress server_address;
 
     SDL_mutex* received_mutex;
     SDL_mutex* sending_mutex;
