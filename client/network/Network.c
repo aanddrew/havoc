@@ -5,6 +5,8 @@
 
 #include <SDL2/SDL.h>
 
+static Uint32 our_id = -1;
+
 void Network_init() {
     SDLNet_Init();
     Pool_init();
@@ -38,8 +40,9 @@ int Network_connect(const char* hostname) {
     int done = 0;
     while(!done) {
         int num = SDLNet_TCP_Recv(sock, temp, 64);
+        our_id = SDLNet_Read32(temp);
         if (num) {
-            printf("Server says: %s\n", temp);
+            printf("Server gives us id: %d\n", our_id);
             done = 1;
         }
     }
@@ -62,3 +65,12 @@ void Network_disconnect() {
     Client_Receiver_stop();
 }
 
+void Network_send_packet(Packet* packet) {
+    SDL_LockMutex(shared_pool.sending_mutex);
+        Vector_push(shared_pool.sending, packet);
+    SDL_UnlockMutex(shared_pool.sending_mutex);
+}
+
+Uint32 Network_get_our_id() {
+    
+}

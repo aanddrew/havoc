@@ -37,7 +37,7 @@ static int thread_fun(void* arg) {
         if (numrecv) {
             Packet* newpack = Packet_create(buffer, numrecv, 0);
             SDL_LockMutex(pool->received_mutex);
-                printf("Server says: %s\n", buffer);
+                //printf("Server says: %s\n", buffer);
                 Vector_push(pool->received, newpack);
             SDL_UnlockMutex(pool->received_mutex);
         }

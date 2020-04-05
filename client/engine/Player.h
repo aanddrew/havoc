@@ -12,6 +12,9 @@ typedef struct {
 } Player;
 
 void Player_init(Player* self);
+void Player_init_wizard(Player* self, SDL_Renderer* renderer);
+
+void Player_update_sprite(Player* self);
 
 void Player_translate(Player* self, float dx, float dy);
 

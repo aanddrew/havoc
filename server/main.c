@@ -31,15 +31,27 @@ int main() {
         SDL_UnlockMutex(shared_pool.received_mutex);
         while(v->num > 0) {
             Packet* message = Vector_pop(v);
-            printf("%s\n", message->data);
-            free(message);
+            Uint8 buffer[64];
+            SDLNet_Write32(message->sender_id, buffer);
+            for(int i = 0; i < message->len; i++) {
+                buffer[i + 4] = message->data[i];
+            }
+            Packet_destroy(message);
+
+            Packet* outgoing = Packet_create(buffer, 12, message->sender_id);
+
+            SDL_LockMutex(shared_pool.sending_mutex);
+                Vector_push(shared_pool.sending, outgoing);
+            SDL_UnlockMutex(shared_pool.sending_mutex);
         }
+        /*
         char* msg = "hello, client";
         SDL_LockMutex(shared_pool.sending_mutex);
             Packet* pack = Packet_create((Uint8*) msg, strlen(msg) + 1, 0);
             Vector_push(shared_pool.sending, pack);
         SDL_UnlockMutex(shared_pool.sending_mutex);
         SDL_Delay(100);
+        */
     }
 
     Server_Receiver_stop();

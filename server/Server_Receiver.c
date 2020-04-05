@@ -75,16 +75,24 @@ static int listen_fun(void* arg) {
     //listens on the servers port and adds clients that connect
     const char* connect_msg = "Connection Granted";
     while(running) {
+        //get the number of clients
+        SDL_LockMutex(shared_pool.num_clients_mutex);
+            Uint32 num_clients = shared_pool.num_clients;
+        SDL_UnlockMutex(shared_pool.num_clients_mutex);
+
         TCPsocket client = SDLNet_TCP_Accept(server);
         if (!client) {
             SDL_Delay(100);
             continue;
         }
-        SDLNet_TCP_Send(client, connect_msg, strlen(connect_msg) + 1);
+
+        //send the client their id
+        Uint8 id_message[4];
+        SDLNet_Write32(num_clients, id_message);
+        SDLNet_TCP_Send(client, id_message, 4);
 
         //increment num_clients
         SDL_LockMutex(shared_pool.num_clients_mutex);
-            int num_clients = shared_pool.num_clients;
             shared_pool.num_clients++;
         SDL_UnlockMutex(shared_pool.num_clients_mutex);
 
@@ -95,7 +103,7 @@ static int listen_fun(void* arg) {
         
         //allocate a name for the thread
         client_thread_names[num_clients] = malloc(128);
-        sprintf(client_thread_names[num_clients], "client_thread_%d", num_clients);
+        sprintf(client_thread_names[num_clients], "client_thread_%u", num_clients);
 
         //finally create the thread for this client
         client_threads[num_clients] = SDL_CreateThread(

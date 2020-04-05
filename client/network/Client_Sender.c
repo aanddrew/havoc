@@ -25,7 +25,9 @@ static int thread_fun(void* arg) {
         SDL_LockMutex(pool->sending_mutex);
         while(pool->sending->num > 0) {
             Packet* pack = Vector_pop(pool->sending);
-
+            SDL_LockMutex(pool->server_mutex);
+                SDLNet_TCP_Send(pool->server, pack->data, pack->len);
+            SDL_UnlockMutex(pool->server_mutex);
             Packet_destroy(pack);
         }
         SDL_UnlockMutex(pool->sending_mutex);

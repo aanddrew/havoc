@@ -32,16 +32,19 @@ int main(int argc, char** argv)
         printf("You are offline\n");
         Network_deinit();
     }
+
+    int our_id = Network_get_our_id();
  
     /* Initialize Game */
 
-    Dolly wiz;
-    Dolly_init_with_sprites(&wiz, window->renderer, "res/wizard/wizard_16_00.bmp", 9);
+    #define MAX_PLAYERS 16
+    Player* players[MAX_PLAYERS];
+    for(int i = 0; i < MAX_PLAYERS; i++) {
+        players[i] = NULL;
+    }
 
-    Player p;
-
-    Player_init(&p);
-    p.sprite = &wiz;
+    players[our_id] = malloc(sizeof(Player));
+    Player_init_wizard(players[our_id], window->renderer);
 
     Camera cam;
     Camera_init(&cam);
@@ -51,13 +54,16 @@ int main(int argc, char** argv)
         SDL_RenderGetViewport(window->renderer, &viewport);
 
         Camera_set_size(&cam, viewport.w, viewport.h);
-        Camera_set_center(&cam, p.pos.x, p.pos.y);
+        Camera_set_center(&cam, players[our_id]->pos.x, players[our_id]->pos.y);
     }
 
     Controller c;
     Controller_init(&c);
-    c.player = &p;
+    c.player = players[our_id];
     c.cam = &cam;
+
+    Vector* incoming_packets = malloc(sizeof(Vector));
+    Vector_init(incoming_packets);
 
 	SDL_Event e;
 	int done = 0;
@@ -99,6 +105,52 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
+        /* Send Network Packets */
+        Uint8 data[64];
+        Uint32 my_x = *( (int*) &(players[our_id]->pos.x));
+        Uint32 my_y = *( (int*) &(players[our_id]->pos.y));
+        
+        SDLNet_Write32(my_x, data);
+        SDLNet_Write32(my_y, data + 4);
+
+        Packet* pack = Packet_create(data, 8, 0);
+        Network_send_packet(pack);
+
+        /* Receive Network Packets */
+
+        SDL_LockMutex(shared_pool.received_mutex);
+            if (shared_pool.received->num > 0) {
+                Vector* temp = incoming_packets;
+                incoming_packets = shared_pool.received;
+                shared_pool.received = temp;
+            }
+        SDL_UnlockMutex(shared_pool.received_mutex);
+        while(incoming_packets->num > 0) {
+            Packet* message = Vector_pop(incoming_packets);
+
+            Uint32 id = SDLNet_Read32(message->data);
+            if (players[id] == NULL) {
+                players[id] = malloc(sizeof(Player));
+                Player_init_wizard(players[id], window->renderer);
+            }
+
+            if (id != our_id) {
+                Uint32 x = SDLNet_Read32(message->data + 4);
+                Uint32 y = SDLNet_Read32(message->data + 8);
+                players[id]->pos.x = *((float*) &x);
+                players[id]->pos.y = *((float*) &y);
+            }
+
+            if (message->len != 12) {
+                printf("===================weird lengt===============\n");
+            }
+           
+            //printf("%x, %x: %f, %f\n", message->len, id, *((float*)&x), *((float*)&y));
+
+            Packet_destroy(message);
+        }
+
+        /* Update own copy of the game*/
 
         float dt_float = ((float) dt) / 1000.0f;
         Controller_update(&c, dt_float, &cam);
@@ -106,13 +158,23 @@ int main(int argc, char** argv)
 
         Window_clear(window);
 		
-        Dolly_render(&wiz, window->renderer, &cam);
+        for(int i = 0; i < MAX_PLAYERS; i++) {
+            if (players[i] != NULL) {
+                Player_update_sprite(players[i]);
+                Dolly_render(players[i]->sprite, window->renderer, &cam);
+            }
+        }
         Proj_render_all(window->renderer, &cam);
 
         Window_present(window);
 	}
 
-    Dolly_delete(&wiz);
+    for(int i = 0; i < MAX_PLAYERS; i++) {
+        if (players[i] != NULL && players[i]->sprite != NULL) {
+            Dolly_delete(players[i]->sprite);
+            free(players[i]->sprite);
+        }
+    }
     Proj_cleanup_all_sprites();
     Window_delete(window);
 

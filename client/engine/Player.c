@@ -8,7 +8,14 @@ void Player_init(Player* self) {
     self->sprite = NULL;
 }
 
-static void Player_update_sprite(Player* self) {
+void Player_init_wizard(Player* self, SDL_Renderer* renderer) {
+    Player_init(self);
+    Dolly* wiz = malloc(sizeof(Dolly));
+    Dolly_init_with_sprites(wiz, renderer, "res/wizard/wizard_16_00.bmp", 9);
+    self->sprite = wiz;
+}
+
+void Player_update_sprite(Player* self) {
     self->sprite->rect.x = (int) (self->pos.x) - self->sprite->rect.w/2;
     self->sprite->rect.y = (int) (self->pos.y) - self->sprite->rect.h/2;
 }
