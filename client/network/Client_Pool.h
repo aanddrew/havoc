@@ -6,6 +6,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_net.h>
 
+//
+// Contains items shared between the sender and receiver
+//
+
 #define PACKET_SIZE 64
 typedef struct {
     Uint8* data;

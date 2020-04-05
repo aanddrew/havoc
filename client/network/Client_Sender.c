@@ -18,6 +18,7 @@ void Client_Sender_deinit() {
 
 static int running = 1;
 
+//looks through packets in the sending vector and sends them to the server
 static int thread_fun(void* arg) {
     pool_t* pool = (pool_t*) arg;
 

@@ -51,7 +51,6 @@ int main(int argc, char** argv)
 
     Camera cam;
     Camera_init(&cam);
-
     {
         SDL_Rect viewport;
         SDL_RenderGetViewport(window->renderer, &viewport);
@@ -66,9 +65,6 @@ int main(int argc, char** argv)
     c.cam = &cam;
 
     SDL_Delay(500);
-
-    Vector* incoming_packets = malloc(sizeof(Vector));
-    Vector_init(incoming_packets);
 
 	SDL_Event e;
 	int done = 0;
@@ -112,7 +108,10 @@ int main(int argc, char** argv)
 		}
 
         if (online) {
-            //send network packets
+            //
+            //SEND our information to the server
+            //
+
             Uint8 data[64];
             //write position
             Uint32 my_x = *((int*)&(players[our_id]->pos.x));
@@ -135,62 +134,56 @@ int main(int argc, char** argv)
             Packet* pack = Packet_create(data, 24, 0);
             Network_send_packet(pack);
 
-            // Receive Network Packets 
-
-            //printf("queue size: %d\n", Client_Receiver_queuesize());
+            //
+            // Receive Information from the server
+            //
+            
             int queuesize = Client_Receiver_queue_full_slots();
             #define SIZE_MSG 28
             if (queuesize > SIZE_MSG) {
-                SDL_LockMutex(shared_pool.received_mutex);
-                if (shared_pool.received->num > 0) {
-                    Vector* temp = incoming_packets;
-                    incoming_packets = shared_pool.received;
-                    shared_pool.received = temp;
-                }
-                SDL_UnlockMutex(shared_pool.received_mutex);
-                while (incoming_packets->num > 0) {
-                    Packet* message = Vector_pop(incoming_packets);
-                    Packet_destroy(message);
-                }
-
                 int num_to_read = queuesize - (queuesize % SIZE_MSG);
                 Uint8* msg = malloc(num_to_read);
-                //printf("Reading %d bytes\n", num_to_read);
-                int read = Client_Receiver_getbytes(msg, num_to_read);
-                if (read) {
-                    for(int i = 0; i < num_to_read; i += SIZE_MSG) {
-                        int id = SDLNet_Read32(msg + i);
-                        if (id < 0 || id >= MAX_PLAYERS) {
-                            continue;
-                        }
-                        if (players[id] == NULL) {
-                            players[id] = malloc(sizeof(Player));
-                            Player_init_wizard(players[id], window->renderer);
-                        }
 
-                        if (id != our_id) {
-                            Uint32 x = SDLNet_Read32(msg + i + 4);
-                            Uint32 y = SDLNet_Read32(msg + i + 8);
-                            players[id]->pos.x = *((float*)&x);
-                            players[id]->pos.y = *((float*)&y);
+                Client_Receiver_getbytes(msg, num_to_read);
+                for(int i = 0; i < num_to_read; i += SIZE_MSG) {
+                    //sender's id is the first part of the message
+                    int id = SDLNet_Read32(msg + i);
+                    if (id < 0 || id >= MAX_PLAYERS) {
+                        continue;
+                    }
 
-                            Uint32 vel_x = SDLNet_Read32(msg + i + 12);
-                            Uint32 vel_y = SDLNet_Read32(msg + i + 16);
-                            players[id]->vel.x = *((float*)&vel_x);
-                            players[id]->vel.y = *((float*)&vel_y);
+                    //new player on the server
+                    if (players[id] == NULL) {
+                        players[id] = malloc(sizeof(Player));
+                        Player_init_wizard(players[id], window->renderer);
+                    }
 
-                            Uint32 look_x = SDLNet_Read32(msg + i + 20);
-                            Uint32 look_y = SDLNet_Read32(msg + i + 24);
-                            players[id]->look.x = *((float*)&look_x);
-                            players[id]->look.y = *((float*)&look_y);
+                    //update other player's information, dont care about ourself
+                    if (id != our_id) {
+                        //same order as it was written in 
+                        Uint32 x = SDLNet_Read32(msg + i + 4);
+                        Uint32 y = SDLNet_Read32(msg + i + 8);
+                        players[id]->pos.x = *((float*)&x);
+                        players[id]->pos.y = *((float*)&y);
 
-                            printf("%d | %f %f : %f %f\n", 
-                                    id,
-                                    players[id]->pos.x,
-                                    players[id]->pos.y,
-                                    players[id]->vel.x,
-                                    players[id]->vel.y);
-                        }
+                        Uint32 vel_x = SDLNet_Read32(msg + i + 12);
+                        Uint32 vel_y = SDLNet_Read32(msg + i + 16);
+                        players[id]->vel.x = *((float*)&vel_x);
+                        players[id]->vel.y = *((float*)&vel_y);
+
+                        Uint32 look_x = SDLNet_Read32(msg + i + 20);
+                        Uint32 look_y = SDLNet_Read32(msg + i + 24);
+                        players[id]->look.x = *((float*)&look_x);
+                        players[id]->look.y = *((float*)&look_y);
+
+                        /*
+                        printf("%d | %f %f : %f %f\n", 
+                                id,
+                                players[id]->pos.x,
+                                players[id]->pos.y,
+                                players[id]->vel.x,
+                                players[id]->vel.y);
+                        */
                     }
                 }
                 free(msg);
@@ -217,6 +210,10 @@ int main(int argc, char** argv)
 
         Window_present(window);
 	}
+
+    //
+    // Cleanup down here
+    //
 
     for(int i = 0; i < MAX_PLAYERS; i++) {
         if (players[i] != NULL && players[i]->sprite != NULL) {

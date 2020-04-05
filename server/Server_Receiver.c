@@ -9,6 +9,8 @@
 
 #include "../utils/Vector.h"
 
+//queue stuff
+
 #define QUEUE_SIZE 4096
 static ByteQueue queue;
 static SDL_mutex* queue_mutex;
@@ -26,6 +28,8 @@ int Server_Receiver_queue_full_slots() {
     SDL_UnlockMutex(queue_mutex);
     return ret;
 }
+
+//other stuff
 
 static IPaddress server_ip;
 
@@ -57,6 +61,7 @@ void Server_Receiver_deinit() {
 static int running = 1;
 #define PACKET_SIZE 64
 
+// Each client who connects gets a thread running this function
 static int client_fun(void* arg) {
     int id = *((int*) arg);
     printf("Starting thread for client %d\n", id);
@@ -82,6 +87,7 @@ static int client_fun(void* arg) {
             }
         SDL_UnlockMutex(client_mutex);
 
+        // This is where we actually put the message in the queue
         if (numrecv) {
             printf("numrecv = %d\n", numrecv);
             Uint8 id_array[4];
@@ -101,9 +107,10 @@ static int client_fun(void* arg) {
     printf("Stopping thread for client %d\n", id);
     return 0;
 } 
+
+//This function just listens for new connections on the server's port
 static int listen_fun(void* arg) {
     printf("Starting listening thread\n");
-    //listens on the servers port and adds clients that connect
     const char* connect_msg = "Connection Granted";
     while(running) {
         //get the number of clients

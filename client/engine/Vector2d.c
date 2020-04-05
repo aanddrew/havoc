@@ -46,6 +46,9 @@ float Vector2d_magnitude(Vector2d v) {
     return sqrt(Vector2d_magnitude_squared(v));
 }
 
+//This looks weird but it depends on the fact that atan can only return 
+//angles between -PI/2 and PI/2
+//and we have to avoid an exception when dividing by zero
 float Vector2d_angle(Vector2d v) {
     if (v.x == 0.0f) {
         if (v.y > 0.0f) {

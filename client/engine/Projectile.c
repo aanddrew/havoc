@@ -45,6 +45,7 @@ void Proj_update(Projectile* self, float dt) {
 
 void launch_proj(int kind, Vector2d pos, Vector2d dir)
 {
+    //logic for resizing the array
     if (!projectiles) {
         projectiles = (Projectile*) malloc(sizeof(Projectile) * size_projectiles);
     }
@@ -53,9 +54,11 @@ void launch_proj(int kind, Vector2d pos, Vector2d dir)
         projectiles = realloc(projectiles, sizeof(Projectile) * size_projectiles);
     }
 
+    //grab the most recent open slot from our array
     Projectile* self = &projectiles[num_projectiles];
     num_projectiles++;
 
+    //now actually spawn it
     Proj_init(self, pos, dir);
     self->sprite = &projectile_sprites[kind];
     Proj_update_sprite(self);

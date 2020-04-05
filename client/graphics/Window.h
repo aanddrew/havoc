@@ -3,6 +3,11 @@
 
 #include <SDL2/SDL.h>
 
+//
+// Simple wrapper aroudn SDL2 windows
+// makes our lives easier
+//
+
 typedef struct {
     SDL_Window* window;
     SDL_Renderer* renderer;

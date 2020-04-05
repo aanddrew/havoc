@@ -6,6 +6,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_net.h>
 
+//
+// This module is responsible for information that is shared 
+// by all files in the server
+//
+
 #define MAX_CLIENTS 16
 typedef struct {
     TCPsocket socket;

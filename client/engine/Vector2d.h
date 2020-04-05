@@ -1,6 +1,11 @@
 #ifndef VECTOR2D_H
 #define VECTOR2D_H
 
+//
+// Utility 2d vector class
+// Contains some functions for math
+//
+
 typedef struct {
     float x;
     float y;

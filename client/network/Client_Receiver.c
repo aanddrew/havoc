@@ -26,11 +26,17 @@ void Client_Receiver_deinit() {
 }
 
 int Client_Receiver_getbytes(Uint8* output, int size) {
-    return ByteQueue_getbytes(&queue, output, size);
+    SDL_LockMutex(queue_mutex);
+        int ret = ByteQueue_getbytes(&queue, output, size);
+    SDL_UnlockMutex(queue_mutex);
+    return ret;
 }
 
 int Client_Receiver_queue_full_slots() {
-    return ByteQueue_full(&queue);
+    SDL_LockMutex(queue_mutex);
+        int ret = ByteQueue_full(&queue);
+    SDL_UnlockMutex(queue_mutex);
+    return ret;
 }
 
 static int running = 1;
@@ -41,6 +47,8 @@ static int thread_fun(void* arg) {
     char buffer[PACKET_SIZE];
     while(running) {
         int numrecv = 0;
+
+        //get some bytes from the server
         SDL_LockMutex(shared_pool.server_mutex);
             if (SDLNet_CheckSockets(shared_pool.server_set, 0) > 0) {
                 if (SDLNet_SocketReady(shared_pool.server)) {
@@ -49,6 +57,7 @@ static int thread_fun(void* arg) {
             }
         SDL_UnlockMutex(shared_pool.server_mutex);
 
+        //add them to our queue of received bytes
         if (numrecv) {
             SDL_LockMutex(queue_mutex);
                 ByteQueue_insert(&queue, buffer, numrecv);

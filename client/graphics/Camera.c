@@ -26,24 +26,26 @@ void Camera_translate(Camera* self, float dx, float dy) {
     Camera_set_center(self, x + dx, y + dy);
 }
 
+//Changes the dimensions of the camera
+//Preserves the original center point of the camera
 void Camera_set_size(Camera* self, float w, float h) {
+    //capture the original center point
     float x, y;
     Camera_get_center(self, &x, &y);
+
     self->w = w;
     self->h = h;
+
+    //now set the center back to that point
     self->aspect_ratio = w / h;
     Camera_set_center(self, x, y);
 }
 
+//multi is the factor to increase zoom level by
+//so if we set multi to 2.0 it means that objects will be twice as big,
+//or conversely the screen will be half the size
 void Camera_zoom(Camera* self, float multi) {
-    float x,y;
-    Camera_get_center(self, &x, &y);
-
-    self->w /= multi;
-    self->h /= multi;
-
-    Camera_set_center(self, x, y);
-    self->scale *= multi;
+    Camera_set_size(self, self->w/multi, self->h/multi);
 }
 
 void Camera_transform_point(const Camera* self, float in_x, float in_y, float* out_x, float* out_y) {

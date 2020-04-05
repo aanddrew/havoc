@@ -55,6 +55,7 @@ void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {
 }
 
 void Controller_update(Controller* self, float dt, const Camera* cam) {
+    //update the look vector based on mouse position
     int mousex, mousey;
     SDL_GetMouseState(&mousex, &mousey);
 
@@ -68,6 +69,7 @@ void Controller_update(Controller* self, float dt, const Camera* cam) {
     Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->player->pos);
     self->player->look = mouse_diff;
 
+    //update players velocity based on keys pressed
     float dx = 0.0f;
     float dy = 0.0f;
     if (self->pressed[UP]) { dy = -1 * self->player->speed; }
@@ -80,9 +82,7 @@ void Controller_update(Controller* self, float dt, const Camera* cam) {
     newvel.y = dy;
     self->player->vel = newvel;
 
-    //Player_translate(self->player, dx, dy);
-    //Player_update(self->player, dt);
-
+    //center the camer if the player is pressing the center camera button
     if (self->pressed[CENTER_CAMERA]) { 
         Camera_set_center(self->cam, self->player->pos.x, self->player->pos.y); 
     }

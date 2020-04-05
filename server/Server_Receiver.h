@@ -1,6 +1,11 @@
 #ifndef SERVER_RECEIVER_H
 #define SERVER_RECEIVER_H
 
+//
+// Receives information from clients
+// puts it into a byte queue to be used in main
+//
+
 void Server_Receiver_init(short port);
 void Server_Receiver_deinit();
 

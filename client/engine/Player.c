@@ -18,7 +18,6 @@ void Player_init_wizard(Player* self, SDL_Renderer* renderer) {
 void Player_update(Player* self, float dt) {
     Player_translate(self, self->vel.x * dt, self->vel.y * dt);
     Player_update_sprite(self);
-    //printf("%f %f\n", self->pos.x, self->pos.y);
 }
 
 void Player_update_sprite(Player* self) {
