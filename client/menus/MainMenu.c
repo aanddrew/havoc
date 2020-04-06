@@ -22,7 +22,7 @@ SDL_Rect font_rect;
 void MainMenu_init(SDL_Renderer* renderer) {
 	big_font = TTF_OpenFont("res/fonts/5ceta_mono.ttf", 24);
 	small_font = TTF_OpenFont("res/fonts/5ceta_mono.ttf", 14);
-	if (!big_font) {
+	if (!big_font || !small_font) {
 		printf("Error opening main menu font: %s\n", SDL_GetError());
 	}
 

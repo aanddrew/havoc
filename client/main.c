@@ -60,6 +60,8 @@ int main(int argc, char** argv)
             break;
         }
     }
+
+    Window_delete(window);
 }
 
 int ConnectMenu_Loop(Window* window) {
@@ -158,7 +160,7 @@ int MainMenu_Loop(Window* window) {
 	return ret;
 }
 
-Game_Loop(Window* window) {
+int Game_Loop(Window* window) {
     Proj_init_all_sprites(window->renderer);
     /* Initialize Network */
     int online = 0;

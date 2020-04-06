@@ -106,7 +106,7 @@ void Network_send_packet(UDPpacket* packet) {
 }
 
 UDPpacket* Network_create_player_packet(Player* player) {
-    if (!online) return;
+    if (!online) return NULL;
     UDPpacket* pack = SDLNet_AllocPacket(64);
     //write message type
     SDLNet_Write32(PLAYER_UPDATE, pack->data);
@@ -158,7 +158,7 @@ void Network_decipher_player_packet(UDPpacket* pack, Player* player) {
 }
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj) {
-    if (!online) return;
+    if (!online) return NULL;
     UDPpacket* pack = SDLNet_AllocPacket(64);
 
     SDLNet_Write32(PROJECTILE_LAUNCH, pack->data);

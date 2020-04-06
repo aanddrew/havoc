@@ -1,2 +1,2 @@
 all:
-	gcc client/*.c client/*/*.c utils/*.c -lSDL2 -lSDL_net -o havoc -g -lm
+	gcc client/*.c client/*/*.c utils/*.c SDL_FontCache/*.c -lSDL2 -lSDL_net -lSDL2_ttf -o havoc -g -lm

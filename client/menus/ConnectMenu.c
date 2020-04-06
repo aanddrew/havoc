@@ -45,7 +45,7 @@ void ConnectMenu_deinit() {
 void ConnectMenu_event(SDL_Event e) {
 	switch (e.type) {
 	case SDL_KEYDOWN: {
-		char* key_name = SDL_GetKeyName(e.key.keysym.sym);
+		const char* key_name = SDL_GetKeyName(e.key.keysym.sym);
 		if (strlen(key_name) == 1)
 			TextBox_append_char(&ip_box, key_name[0]);
 		switch (e.key.keysym.sym) {

@@ -1,11 +1,14 @@
 #include "Window.h"
 
+#include <SDL2/SDL_ttf.h>
+
 Window* Window_init() {
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		return NULL;
 	}
-	if (!TTF_Init() == -1) {
+	if (TTF_Init() < 0) {
+        printf("Error with TTF_Init(): %s\n", SDL_GetError());
 		return NULL;
 	}
 
