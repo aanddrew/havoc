@@ -95,8 +95,11 @@ static int listen_fun(void* arg) {
             //already connected client is sending a message
             else {
                 SDL_LockMutex(shared_pool.received_mutex);
+                    //prepend the id of the sender to the message
                     UDPpacket* cloned_pack = SDLNet_AllocPacket(256);
                     SDLNet_Write32((Uint32) id, cloned_pack->data);
+                    
+                    //now just copy the original message
                     clone_packet(temp_packet, cloned_pack, 4);
                     Vector_push(shared_pool.received, cloned_pack);
                     printf("Received\n");

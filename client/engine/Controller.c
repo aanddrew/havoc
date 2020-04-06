@@ -2,6 +2,8 @@
 
 #include "Projectile.h"
 
+#include "../network/Network.h"
+
 static const int default_binds[] = {
     SDLK_w,
     SDLK_s,
@@ -46,7 +48,14 @@ void Controller_keyup(Controller* self, int key) {
 }
 
 void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e) {
-    launch_proj(0, self->player->pos, self->player->look);
+    //Projectile* proj = launch_proj(0, self->player->pos, self->player->look);
+    Projectile proj;
+    proj.kind = 0;
+    proj.pos = self->player->pos;
+    proj.dir = self->player->look;
+
+    UDPpacket* proj_pack = Network_create_projectile_packet(&proj);
+    Network_send_packet(proj_pack);
 }
 
 void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {

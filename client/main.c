@@ -13,6 +13,7 @@
 #include "network/Client_Sender.h"
 #include "network/Client_Receiver.h"
 #include "network/Network.h"
+#include "network/Message.h"
 
 #ifdef WIN32
     #define strdup _strdup
@@ -111,29 +112,9 @@ int main(int argc, char** argv)
             //
             //SEND our information to the server
             //
-
-            UDPpacket* pack = SDLNet_AllocPacket(64);
-            //write position
-            Uint32 my_x = *((int*)&(players[our_id]->pos.x));
-            Uint32 my_y = *((int*)&(players[our_id]->pos.y));
-            SDLNet_Write32(my_x, pack->data);
-            SDLNet_Write32(my_y, pack->data + 4);
             
-            //write velocity
-            Uint32 my_vel_x = *((int*)&(players[our_id]->vel.x));
-            Uint32 my_vel_y = *((int*)&(players[our_id]->vel.y));
-            SDLNet_Write32(my_vel_x, pack->data + 8);
-            SDLNet_Write32(my_vel_y, pack->data + 12);
-
-            //write look vector
-            Uint32 my_look_x = *((int*)&(players[our_id]->look.x));
-            Uint32 my_look_y = *((int*)&(players[our_id]->look.y));
-            SDLNet_Write32(my_look_x, pack->data + 16);
-            SDLNet_Write32(my_look_y, pack->data + 20);
-
-            pack->len = 24;
-
-            Network_send_packet(pack);
+            UDPpacket* pos_pack = Network_create_player_packet(players[our_id]);
+            Network_send_packet(pos_pack);
 
             //
             // Receive Information from the server
@@ -144,39 +125,23 @@ int main(int argc, char** argv)
             while(incoming->num > 0) {
                 UDPpacket* pack = Vector_pop(incoming);
                 Uint32 id = SDLNet_Read32(pack->data);
-                //printf("Received packet of length %d, id: %d\n", pack->len, id);
-                //update other player's information, dont care about ourself
-                if (id != our_id) {
-                    if (players[id] == NULL) {
-                        players[id] = malloc(sizeof(Player));
-                        Player_init_wizard(players[id], window->renderer);
-                    }
-                    if (pack->len != 28)
-                        continue;
+                Uint32 message_type = SDLNet_Read32(pack->data + 4);
 
-                    //same order as it was written in 
-                    Uint32 x = SDLNet_Read32(pack->data + 4);
-                    Uint32 y = SDLNet_Read32(pack->data + 8);
-                    players[id]->pos.x = *((float*)&x);
-                    players[id]->pos.y = *((float*)&y);
-
-                    Uint32 vel_x = SDLNet_Read32(pack->data + 12);
-                    Uint32 vel_y = SDLNet_Read32(pack->data + 16);
-                    players[id]->vel.x = *((float*)&vel_x);
-                    players[id]->vel.y = *((float*)&vel_y);
-
-                    Uint32 look_x = SDLNet_Read32(pack->data + 20);
-                    Uint32 look_y = SDLNet_Read32(pack->data + 24);
-                    players[id]->look.x = *((float*)&look_x);
-                    players[id]->look.y = *((float*)&look_y);
-
-                    printf("%d | %f %f : %f %f\n", 
-                            id,
-                            players[id]->pos.x,
-                            players[id]->pos.y,
-                            players[id]->vel.x,
-                            players[id]->vel.y);
+                if (players[id] == NULL) {
+                    players[id] = malloc(sizeof(Player));
+                    Player_init_wizard(players[id], window->renderer);
                 }
+                
+                switch (message_type) {
+                    case PLAYER_UPDATE:
+                        if (id != our_id)
+                        Network_decipher_player_packet(pack, players[id]);
+                    break;
+                    case PROJECTILE_LAUNCH:
+                        Network_deciper_projectile_packet(pack, NULL);
+                    break;
+                }
+                
                 SDLNet_FreePacket(pack);
             }
         }

@@ -41,9 +41,10 @@ void Proj_update(Projectile* self, float dt) {
     self->pos.x += self->dir.x * self->speed * dt;
     self->pos.y += self->dir.y * self->speed * dt;
     Proj_update_sprite(self);
+    self->time_alive += dt;
 }
 
-void launch_proj(int kind, Vector2d pos, Vector2d dir)
+Projectile* launch_proj(int kind, Vector2d pos, Vector2d dir)
 {
     //logic for resizing the array
     if (!projectiles) {
@@ -61,7 +62,9 @@ void launch_proj(int kind, Vector2d pos, Vector2d dir)
     //now actually spawn it
     Proj_init(self, pos, dir);
     self->sprite = &projectile_sprites[kind];
+    self->kind = kind;
     Proj_update_sprite(self);
+    return self;
 }
 
 void Proj_update_all(float dt) {

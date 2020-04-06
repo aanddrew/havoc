@@ -13,6 +13,7 @@
 
 typedef struct {
     Dolly* sprite;
+    int kind;
     Vector2d pos; 
     Vector2d dir; 
     float speed;
@@ -32,7 +33,7 @@ void Proj_cleanup_all_sprites();
 void Proj_init(Projectile* self, Vector2d pos, Vector2d dir);
 
 //this will create a projectile in the private projectiles array
-void launch_proj(int kind, Vector2d pos, Vector2d dir);
+Projectile* launch_proj(int kind, Vector2d pos, Vector2d dir);
 
 //these do stuff to every projectile in the private array
 void Proj_render_all(SDL_Renderer* renderer, const Camera* cam);
