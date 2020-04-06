@@ -11,18 +11,10 @@
 
 static SDL_Thread* thread;
 
-#define QUEUE_SIZE 4096
-static ByteQueue queue;
-static SDL_mutex* queue_mutex;
-
 void Client_Receiver_init() {
-    queue_mutex = SDL_CreateMutex();
-    ByteQueue_init(&queue, QUEUE_SIZE);
 }
 
 void Client_Receiver_deinit() {
-    ByteQueue_deinit(&queue);
-    SDL_DestroyMutex(queue_mutex);
 }
 
 Vector* Client_Receiver_get_received() {

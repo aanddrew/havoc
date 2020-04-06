@@ -1,0 +1,4 @@
+havoc makes use of this Library for font caching.
+Thank you to the authors.
+
+https://github.com/grimfang4/SDL_FontCache

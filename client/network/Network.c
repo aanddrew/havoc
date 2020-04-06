@@ -6,9 +6,11 @@
 
 #include "../engine/Player.h"
 
+#include <stdio.h>
 #include <SDL2/SDL.h>
 
 static Uint32 our_id = -1;
+static int online = 0;
 
 void Network_init() {
     SDLNet_Init();
@@ -49,8 +51,8 @@ int Network_connect(const char* hostname) {
     SDLNet_UDP_Send(sock, -1, pack);
 
     int num_tries = 0;
-    //const int max_tries = -1;
-    while(1) {
+    const int max_tries = 20;
+    while(num_tries < max_tries) {
         int num = SDLNet_UDP_Recv(sock, pack);
         if (num) {
             our_id = SDLNet_Read32(pack->data);
@@ -60,7 +62,11 @@ int Network_connect(const char* hostname) {
         else {
             //printf("No response\n");
         }
-        //SDL_Delay(100);
+        SDL_Delay(100);
+        num_tries++;
+    }
+    if (num_tries == max_tries) {
+        return 0;
     }
     SDLNet_FreePacket(pack);
     
@@ -68,6 +74,7 @@ int Network_connect(const char* hostname) {
     Client_Receiver_run();
     Client_Sender_run();
 
+    online = 1;
     return 1;
 }
 
@@ -87,15 +94,19 @@ void Network_disconnect() {
 
     //close the connection
     SDLNet_UDP_Close(shared_pool.server);
+    online = 0;
 }
 
 void Network_send_packet(UDPpacket* packet) {
+    if (!online) return;
+
     SDL_LockMutex(shared_pool.sending_mutex);
         Vector_push(shared_pool.sending, packet);
     SDL_UnlockMutex(shared_pool.sending_mutex);
 }
 
 UDPpacket* Network_create_player_packet(Player* player) {
+    if (!online) return;
     UDPpacket* pack = SDLNet_AllocPacket(64);
     //write message type
     SDLNet_Write32(PLAYER_UPDATE, pack->data);
@@ -123,6 +134,7 @@ UDPpacket* Network_create_player_packet(Player* player) {
 }
 
 void Network_decipher_player_packet(UDPpacket* pack, Player* player) {
+    if (!online) return;
     if (pack->len != 32) {
         printf("INVALID PLAYER PACKET, length of %d\n", pack->len);
         return;
@@ -146,6 +158,7 @@ void Network_decipher_player_packet(UDPpacket* pack, Player* player) {
 }
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj) {
+    if (!online) return;
     UDPpacket* pack = SDLNet_AllocPacket(64);
 
     SDLNet_Write32(PROJECTILE_LAUNCH, pack->data);
@@ -170,6 +183,7 @@ UDPpacket* Network_create_projectile_packet(Projectile* proj) {
 }
 
 void Network_deciper_projectile_packet(UDPpacket* pack, Projectile* proj) {
+    if (!online) return;
     Uint32 kind = SDLNet_Read32(pack->data + 8);
 
     Uint32 my_x = SDLNet_Read32(pack->data + 12);
@@ -189,4 +203,8 @@ void Network_deciper_projectile_packet(UDPpacket* pack, Projectile* proj) {
 
 Uint32 Network_get_our_id() {
     return our_id;
+}
+
+int Network_online() {
+    return online;
 }

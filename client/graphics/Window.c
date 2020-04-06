@@ -5,6 +5,9 @@ Window* Window_init() {
 	{
 		return NULL;
 	}
+	if (!TTF_Init() == -1) {
+		return NULL;
+	}
 
     Window* window = malloc(sizeof(Window));
 
@@ -36,6 +39,7 @@ void Window_delete(Window* self) {
     SDL_DestroyRenderer(self->renderer);
     free(self);
 
+	TTF_Quit();
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
 }

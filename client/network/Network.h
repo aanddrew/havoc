@@ -22,4 +22,6 @@ void Network_deciper_projectile_packet(UDPpacket* pack, Projectile* proj);
 
 Uint32 Network_get_our_id();
 
+int Network_online();
+
 #endif
