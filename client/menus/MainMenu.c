@@ -13,6 +13,9 @@ const char* button_text[] = {
 static Button buttons[NUM_BUTTONS];
 static Button havoc_button;
 
+static SDL_Texture* picture_texture;
+static SDL_Rect picture_rect;
+
 TTF_Font* big_font = NULL;
 TTF_Font* small_font = NULL;
 SDL_Color textColor = { 255, 255, 255 };
@@ -25,6 +28,18 @@ void MainMenu_init(SDL_Renderer* renderer) {
 	if (!big_font || !small_font) {
 		printf("Error opening main menu font: %s\n", SDL_GetError());
 	}
+
+    SDL_Surface* surface = SDL_LoadBMP("res/pictures/wizards_standing_pixel.bmp");
+    picture_texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!surface || !picture_texture) {
+        printf("Error opening main menu picture %s\n", SDL_GetError());
+    }
+    SDL_FreeSurface(surface);
+
+    picture_rect.x = 300;
+    picture_rect.y = 100;
+    picture_rect.w = 800;
+    picture_rect.h = 400;
 
 	int start_y = 200;
 	for (int i = 0; i < NUM_BUTTONS; i++) {
@@ -40,7 +55,12 @@ void MainMenu_init(SDL_Renderer* renderer) {
 
 void MainMenu_deinit() {
 	TTF_CloseFont(big_font);
+    big_font = NULL;
 	TTF_CloseFont(small_font);
+    small_font = NULL;
+
+    SDL_DestroyTexture(picture_texture);
+    picture_texture = NULL;
 }
 
 SDL_Texture* message_texture = NULL;
@@ -55,6 +75,8 @@ void MainMenu_Render(SDL_Renderer* renderer) {
 		Button_render(&buttons[i], renderer);
 	}
 	Button_render(&havoc_button, renderer);
+
+    SDL_RenderCopy(renderer, picture_texture, NULL, &picture_rect);
 }
 
 int MainMenu_pressed_button(int x, int y) {
