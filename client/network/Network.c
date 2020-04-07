@@ -4,7 +4,7 @@
 #include "Client_Sender.h"
 #include "Message.h"
 
-#include "../engine/Player.h"
+#include "../game/Player.h"
 
 #include <stdio.h>
 #include <SDL2/SDL.h>

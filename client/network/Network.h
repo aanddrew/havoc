@@ -3,8 +3,8 @@
 
 #include "Client_Pool.h"
 
-#include "../engine/Player.h"
-#include "../engine/Projectile.h"
+#include "../game/Player.h"
+#include "../game/Projectile.h"
 
 void Network_init();
 void Network_deinit();

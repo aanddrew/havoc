@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "Player.h"
-#include "../graphics/Camera.h"
+#include "../../graphics/Camera.h"
 
 //
 // Updates a player object based on inputs from SDL

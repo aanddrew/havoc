@@ -21,10 +21,12 @@ void Player_update(Player* self, float dt) {
 }
 
 void Player_update_sprite(Player* self) {
+    static const float LOOK_OFFSET = -3.0 * M_PI / 4.0;
+
     self->sprite->rect.x = (int) (self->pos.x) - self->sprite->rect.w/2;
     self->sprite->rect.y = (int) (self->pos.y) - self->sprite->rect.h/2;
     float angle = Vector2d_angle(self->look);
-    self->sprite->angle = angle;
+    self->sprite->angle = angle + LOOK_OFFSET;
 }
 
 void Player_translate(Player* self, float dx, float dy) {

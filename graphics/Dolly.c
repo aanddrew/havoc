@@ -1,5 +1,5 @@
 #include "Dolly.h"
-#include "../global.h"
+#include "../client/global.h"
 
 #include "Camera.h"
 #include <string.h>
@@ -23,9 +23,11 @@ void Dolly_init_with_sprites(Dolly* self, SDL_Renderer* window_renderer, const c
 
 int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num) {
     char* name = strdup(file_name);
-    name[(strchr(name, '.') - name) - 2] = '0';
+    if (num != 1) 
+        name[(strchr(name, '.') - name) - 2] = '0';
     for(int i = 0; i < num; i++) {
-        name[(strchr(name, '.') - name) - 1] = '0' + i;
+        if (num != 1)
+            name[(strchr(name, '.') - name) - 1] = '0' + i;
         SDL_Surface* surface = SDL_LoadBMP(name);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(window_render, surface);
         if (!surface || !texture) {
@@ -50,7 +52,7 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam)
                 Vector_get(&self->textures, i),
                 NULL, 
                 &camera_rect, 
-                (double) (self->angle - (3.0f * M_PI / 4.0f)) * 180.0f / M_PI ,
+                (double) (self->angle) * 180.0f / M_PI ,
                 NULL, 
                 SDL_FLIP_NONE
         );

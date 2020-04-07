@@ -66,13 +66,7 @@ void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {
 void Controller_update(Controller* self, float dt, const Camera* cam) {
     //update the look vector based on mouse position
     int mousex, mousey;
-    SDL_GetMouseState(&mousex, &mousey);
-
-    mousex = ((float) mousex) / cam->scale;
-    mousey = ((float) mousey) / cam->scale;
-
-    mousex += cam->x;
-    mousey += cam->y;
+    Camera_get_mousestate_relative(cam, &mousex, &mousey);
 
     Vector2d mouse_pos = {mousex, mousey};
     Vector2d mouse_diff = Vector2d_subtract(mouse_pos, self->player->pos);

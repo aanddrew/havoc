@@ -34,7 +34,7 @@ static void Proj_update_sprite(Projectile* self)
 {
   self->sprite->rect.x = (int) (self->pos.x);
   self->sprite->rect.y = (int) (self->pos.y);
-  self->sprite->angle = Vector2d_angle(self->dir);
+  self->sprite->angle = Vector2d_angle(self->dir) + -3.0f * M_PI / 4.0f;
 }
 
 void Proj_update(Projectile* self, float dt) {

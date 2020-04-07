@@ -1,8 +1,8 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
-#include "../graphics/Dolly.h"
-#include "../graphics/Camera.h"
+#include "../../graphics/Dolly.h"
+#include "../../graphics/Camera.h"
 #include "Vector2d.h"
 #include "Player.h"
 

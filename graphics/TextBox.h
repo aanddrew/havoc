@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "../../SDL_FontCache/SDL_FontCache.h"
+#include "../SDL_FontCache/SDL_FontCache.h"
 
 #define TEXTBOX_BUFFER_SIZE 512
 typedef struct {

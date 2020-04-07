@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "../graphics/Dolly.h"
+#include "../../graphics/Dolly.h"
 #include "Vector2d.h"
 
 typedef struct {

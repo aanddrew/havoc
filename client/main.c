@@ -4,13 +4,13 @@
 
 #include "../SDL_FontCache/SDL_FontCache.h"
 
-#include "graphics/Window.h"
-#include "graphics/Dolly.h"
-#include "graphics/Camera.h"
+#include "../graphics/Window.h"
+#include "../graphics/Dolly.h"
+#include "../graphics/Camera.h"
 
-#include "engine/Player.h"
-#include "engine/Controller.h"
-#include "engine/Projectile.h"
+#include "game/Player.h"
+#include "game/Controller.h"
+#include "game/Projectile.h"
 
 #include "network/Client_Pool.h"
 #include "network/Client_Sender.h"
@@ -188,14 +188,7 @@ int Game_Loop(Window* window) {
     Player_init_wizard(players[our_id], window->renderer);
 
     Camera cam;
-    Camera_init(&cam);
-    {
-        SDL_Rect viewport;
-        SDL_RenderGetViewport(window->renderer, &viewport);
-
-        Camera_set_size(&cam, viewport.w, viewport.h);
-        Camera_set_center(&cam, players[our_id]->pos.x, players[our_id]->pos.y);
-    }
+    Camera_init(&cam, window->renderer);
 
     Controller c;
     Controller_init(&c);
@@ -237,7 +230,6 @@ int Game_Loop(Window* window) {
                     SDL_RenderGetViewport(window->renderer, &viewport);
 
                     Camera_set_size(&cam, viewport.w, viewport.h);
-                    Camera_print(&cam);
                 } break;
                 }
                 break;

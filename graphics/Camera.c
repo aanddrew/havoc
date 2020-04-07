@@ -1,11 +1,20 @@
 #include "Camera.h"
 
-void Camera_init(Camera* self) {
-    self->x = 0.0f;
-    self->y = 0.0f;
-    self->w = 400.0f;
-    self->h = 225.0f;
-    self->scale = 1.0f;
+void Camera_init(Camera* self, SDL_Renderer* renderer) {
+    self->renderer = renderer;
+    {
+        SDL_Rect viewport;
+        SDL_RenderGetViewport(renderer, &viewport);
+
+        Camera_set_size(self, viewport.w, viewport.h);
+        Camera_set_center(self, 0, 0);
+    }
+
+    int renderw, renderh;
+    SDL_GetRendererOutputSize(renderer, &renderw, &renderh);
+
+    self->w = renderw;
+    self->h = renderh;
 
     self->aspect_ratio = self->w / self->h;
 }
@@ -41,26 +50,45 @@ void Camera_set_size(Camera* self, float w, float h) {
     Camera_set_center(self, x, y);
 }
 
+void Camera_get_mousestate_relative(Camera*self, int* x, int* y) {
+    SDL_GetMouseState(x, y);
+
+    float scale = Camera_get_scale(self);
+    *x = ((float) *x) / scale;
+    *y = ((float) *y) / scale;
+
+    *x += self->x;
+    *y += self->y;
+}
+
 //multi is the factor to increase zoom level by
 //so if we set multi to 2.0 it means that objects will be twice as big,
 //or conversely the screen will be half the size
 void Camera_zoom(Camera* self, float multi) {
     Camera_set_size(self, self->w/multi, self->h/multi);
-    self->scale *= multi;
+}
+
+float Camera_get_scale(const Camera* self) {
+    int renderw, renderh;
+    SDL_GetRendererOutputSize(self->renderer, &renderw, &renderh);
+    return ((float) renderw) / self->w;
 }
 
 void Camera_transform_point(const Camera* self, float in_x, float in_y, float* out_x, float* out_y) {
-    *out_x = (in_x - self->x) * self->scale;
-    *out_y = (in_y - self->y) * self->scale;
+    float scale = Camera_get_scale(self);
+    *out_x = (in_x - self->x) * scale;
+    *out_y = (in_y - self->y) * scale;
 }
 
 void Camera_transform_rect(const Camera* self, const SDL_Rect* input, SDL_Rect* output) {
-    output->x = (input->x - self->x) * self->scale;
-    output->y = (input->y - self->y) * self->scale;
-    output->w = input->w * self->scale;
-    output->h = input->h * self->scale;
+    float scale = Camera_get_scale(self);
+
+    output->x = (input->x - self->x) * scale;
+    output->y = (input->y - self->y) * scale;
+    output->w = (input->w * scale) + 1.0f;
+    output->h = (input->h * scale)+ 1.0f;
 }
 
 void Camera_print(const Camera* self) {
-    printf("%f, %f, %f, %f, %f, %f\n", self->x, self->y, self->w, self->h, self->scale, self->aspect_ratio);
+    printf("%f, %f, %f, %f, %f, %f\n", self->x, self->y, self->w, self->h, self->aspect_ratio);
 }

@@ -4,7 +4,7 @@
 #include "Camera.h"
 
 #include <SDL2/SDL.h>
-#include "../../utils/Vector.h"
+#include "../utils/Vector.h"
 
 //
 // The Dolly mixture is something invented by 3kliksphilip (google it)
