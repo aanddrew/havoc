@@ -1,6 +1,8 @@
 #include "Dolly.h"
 #include "../client/global.h"
 
+#include <SDL2/SDL_image.h>
+
 #include "Camera.h"
 #include <string.h>
 
@@ -28,7 +30,7 @@ int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_
     for(int i = 0; i < num; i++) {
         if (num != 1)
             name[(strchr(name, '.') - name) - 1] = '0' + i;
-        SDL_Surface* surface = SDL_LoadBMP(name);
+        SDL_Surface* surface = IMG_Load(name);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(window_render, surface);
         if (!surface || !texture) {
             printf("error loading texture file %s: %s\n", name, SDL_GetError());

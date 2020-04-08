@@ -17,8 +17,11 @@ enum TILES {
     DIRT,
     STONE,
     WATER,
+    SAND,
     NUM_TILES,
 };
+
+extern const char* tile_files[];
 
 void Map_init(Map* self, SDL_Renderer* renderer, const char* file_name);
 void Map_deinit(Map* self);

@@ -5,10 +5,11 @@
 static Dolly tile_dollys[NUM_TILES];
 static int num_maps_initted = 0;
 
-static const char* tile_files[] = {
-    "../res/map/dirt.bmp",
-    "../res/map/stone.bmp",
-    "../res/map/water.bmp",
+const char* tile_files[] = {
+    "../res/map/dirt.png",
+    "../res/map/stone.png",
+    "../res/map/water.png",
+    "../res/map/sand.png",
 };
 
 #define TILE_WIDTH 16

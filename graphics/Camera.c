@@ -50,7 +50,7 @@ void Camera_set_size(Camera* self, float w, float h) {
     Camera_set_center(self, x, y);
 }
 
-void Camera_get_mousestate_relative(Camera*self, int* x, int* y) {
+void Camera_get_mousestate_relative(const Camera*self, int* x, int* y) {
     SDL_GetMouseState(x, y);
 
     float scale = Camera_get_scale(self);

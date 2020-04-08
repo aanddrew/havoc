@@ -27,7 +27,7 @@ void Camera_translate(Camera* self, float dx, float dy);
 void Camera_set_size(Camera* self, float w, float h);
 void Camera_zoom(Camera* self, float multi);
 
-void Camera_get_mousestate_relative(Camera*self, int* x, int* y);
+void Camera_get_mousestate_relative(const Camera * self, int* x, int* y);
 
 //these methods are the important ones that actually manipulate points
 //according to the properties of the camera

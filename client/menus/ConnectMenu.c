@@ -19,10 +19,14 @@ static Button buttons[CONNECTMENU_NUM_BUTTONS];
 void ConnectMenu_init(SDL_Renderer* renderer) {
 	font = FC_CreateFont();
     FC_LoadFont(font, renderer, "res/fonts/5ceta_mono.ttf", 20, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
+
 	TextBox_init(&ip_box, "type ip", font);
+    ip_box.is_active = 1;
+    SDL_StartTextInput();
+
 	int w, h;
 	SDL_GetRendererOutputSize(renderer, &w, &h);
-	ip_box.x = w / 2 - 100;
+	ip_box.x = w / 2 - 150;
 	ip_box.y = h / 2 - 40;
 
 	ttf_font = TTF_OpenFont("res/fonts/5ceta_mono.ttf", 14);
@@ -38,29 +42,28 @@ void ConnectMenu_deinit() {
 		Button_deinit(&buttons[i]);
 	}
 	TextBox_deinit(&ip_box);
+    SDL_StopTextInput();
+
 	FC_FreeFont(font);
 	font = NULL;
 }
 
 void ConnectMenu_event(SDL_Event e) {
 	switch (e.type) {
-	case SDL_KEYDOWN: {
-		const char* key_name = SDL_GetKeyName(e.key.keysym.sym);
-		if (strlen(key_name) == 1)
-			TextBox_append_char(&ip_box, key_name[0]);
-		switch (e.key.keysym.sym) {
-		case SDLK_SPACE:
-			TextBox_append_char(&ip_box, ' ');
-			break;
-		case SDLK_BACKSPACE:
-			TextBox_delete_end(&ip_box);
-			break;
-		}
-	} break;
-	case SDL_MOUSEBUTTONDOWN:
+    case SDL_KEYDOWN: {
+        switch(e.key.keysym.sym) {
+            case SDLK_BACKSPACE:
+                TextBox_delete_end(&ip_box);
+            break;
+        }
+    } break;
+    case SDL_TEXTINPUT:
+        TextBox_append(&ip_box, e.text.text);
+        break;
+    case SDL_MOUSEBUTTONDOWN:
 
-		break;
-	}
+        break;
+    }
 }
 
 void ConnectMenu_render(SDL_Renderer* renderer) {

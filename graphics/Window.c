@@ -1,6 +1,7 @@
 #include "Window.h"
 
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 
 Window* Window_init() {
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -11,6 +12,11 @@ Window* Window_init() {
         printf("Error with TTF_Init(): %s\n", SDL_GetError());
 		return NULL;
 	}
+    int flags = IMG_INIT_JPG | IMG_INIT_PNG;
+    if (IMG_Init(flags) != flags) {
+        printf("Error with IMG_Init: %s\n", SDL_GetError());
+        return NULL;
+    }
 
     Window* window = malloc(sizeof(Window));
 
@@ -29,7 +35,7 @@ Window* Window_init() {
 }
 
 void Window_clear(Window* self) {
-    SDL_SetRenderDrawColor(self->renderer, 25, 25, 50, 255);
+    SDL_SetRenderDrawColor(self->renderer, 100, 100, 200, 255);
     SDL_RenderClear(self->renderer);
 }
 
