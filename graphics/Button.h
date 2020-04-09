@@ -7,6 +7,8 @@
 typedef struct {
 	SDL_Rect rect;
 	SDL_Texture* texture;
+    int is_active;
+    int is_hovered;
 } Button;
 
 void Button_init(Button* self);
@@ -16,6 +18,7 @@ void Button_init_icon(Button* self, SDL_Renderer* renderer, const char* img_file
 
 void Button_render(Button* self, SDL_Renderer* renderer);
 
-int Button_is_mouse_inside(Button* self, int x, int y);
+void Button_get_screen_coords(Button*self, SDL_Renderer* renderer, int* x, int* y);
+int Button_is_mouse_inside(Button* self, SDL_Renderer* renderer, int x, int y);
 
 #endif

@@ -68,10 +68,7 @@ void MainMenu_Render(SDL_Renderer* renderer) {
 	int mousex, mousey;
 	SDL_GetMouseState(&mousex, &mousey);
 	for (int i = 0; i < NUM_BUTTONS; i++) {
-		if (Button_is_mouse_inside(&buttons[i], mousex, mousey)) {
-			SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-			SDL_RenderFillRect(renderer, &buttons[i].rect);
-		}
+        buttons[i].is_hovered = Button_is_mouse_inside(&buttons[i], renderer, mousex, mousey);
 		Button_render(&buttons[i], renderer);
 	}
 	Button_render(&havoc_button, renderer);
@@ -79,9 +76,9 @@ void MainMenu_Render(SDL_Renderer* renderer) {
     SDL_RenderCopy(renderer, picture_texture, NULL, &picture_rect);
 }
 
-int MainMenu_pressed_button(int x, int y) {
+int MainMenu_pressed_button(SDL_Renderer* renderer, int x, int y) {
 	for (int i = 0; i < NUM_BUTTONS; i++) {
-		if (Button_is_mouse_inside(&buttons[i], x, y)) {
+		if (Button_is_mouse_inside(&buttons[i], renderer, x, y)) {
 			return i;
 		}
 	}

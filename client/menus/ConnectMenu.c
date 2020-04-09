@@ -22,6 +22,7 @@ void ConnectMenu_init(SDL_Renderer* renderer) {
 
 	TextBox_init(&ip_box, "type ip", font);
     ip_box.is_active = 1;
+    ip_box.box_width = 300;
     SDL_StartTextInput();
 
 	int w, h;
@@ -67,15 +68,12 @@ void ConnectMenu_event(SDL_Event e) {
 }
 
 void ConnectMenu_render(SDL_Renderer* renderer) {
-	TextBox_render(&ip_box, renderer);
+	TextBox_render_bg(&ip_box, renderer);
 
 	int mousex, mousey;
 	SDL_GetMouseState(&mousex, &mousey);
 	for (int i = 0; i < CONNECTMENU_NUM_BUTTONS; i++) {
-		if (Button_is_mouse_inside(&buttons[i], mousex, mousey)) {
-			SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-			SDL_RenderFillRect(renderer, &buttons[i].rect);
-		}
+        buttons[i].is_hovered = Button_is_mouse_inside(&buttons[i], renderer, mousex, mousey);
 		Button_render(&buttons[i], renderer);
 	}
 }
@@ -87,9 +85,9 @@ void ConnectMenu_getip(char* buf, int len) {
 	}
 }
 
-int ConnectMenu_pressed_button(int x, int y) {
+int ConnectMenu_pressed_button(SDL_Renderer* renderer, int x, int y) {
 	for (int i = 0; i < CONNECTMENU_NUM_BUTTONS; i++) {
-		if (Button_is_mouse_inside(&buttons[i], x, y)) {
+		if (Button_is_mouse_inside(&buttons[i], renderer, x, y)) {
 			return i;
 		}
 	}

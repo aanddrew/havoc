@@ -46,6 +46,9 @@ static Button tile_buttons[NUM_TILES];
 static TextBox save_box;
 FC_Font* font = NULL;
 
+static Button save_button;
+static Button load_button;
+
 int main(int argc, char** argv)
 {
     Window* window = Window_init();
@@ -68,6 +71,18 @@ int main(int argc, char** argv)
     save_box.x = 25;
     save_box.y = -30;
     save_box.box_width = 200;
+
+    TTF_Font* font_ttf = TTF_OpenFont("../res/fonts/5ceta_mono.ttf", 10);
+    if (!font_ttf) {
+        printf("Unable to load font: %s\n", SDL_GetError());
+    }
+    SDL_Color white = {255, 255, 255 ,255 };
+    Button_init_text(&save_button, window->renderer, font_ttf, "save", white);
+    Button_init_text(&load_button, window->renderer, font_ttf, "load", white);
+    save_button.rect.x = 25;
+    save_button.rect.y = -60;
+    load_button.rect.x = 90;
+    load_button.rect.y = -60;
 
     TextBox* current_textbox = NULL;
 
@@ -102,8 +117,11 @@ int main(int argc, char** argv)
                         current_textbox->is_active = 0;
                         current_textbox = NULL;
                     }
-                    if (e.key.keysym.sym == SDLK_BACKSPACE) {
+                    else if (e.key.keysym.sym == SDLK_BACKSPACE) {
                         TextBox_delete_end(current_textbox);
+                    }
+                    else if (e.key.keysym.sym == SDLK_RETURN) {
+                        Map_save(&map, current_textbox->buffer);
                     }
                 }
                 break;
@@ -123,7 +141,6 @@ int main(int argc, char** argv)
                 break;
             case SDL_TEXTINPUT:
                 if (current_textbox) {
-                    printf("%s\n", e.text.text);
                     TextBox_append(current_textbox, e.text.text);
                 }
                 break;
@@ -151,6 +168,15 @@ int main(int argc, char** argv)
                             mouse_button_pressed[LEFT_BUTTON] = 1;
                             SDL_StopTextInput();
                         }
+                    }
+
+                    if (Button_is_mouse_inside(&save_button, window->renderer, x, y)) {
+                        Map_save(&map, save_box.buffer);
+                    }
+                    else if (Button_is_mouse_inside(&load_button, window->renderer, x, y)) {
+                        Map_load(&map, save_box.buffer);
+                    }
+                    else {
                     }
    
                 }
@@ -187,12 +213,18 @@ int main(int argc, char** argv)
         if (bind_pressed[LEFT])  { Camera_translate(&cam, -move_amnt, 0); }
         if (bind_pressed[RIGHT]) { Camera_translate(&cam, move_amnt, 0);  }
 
+        int x,y;
+        SDL_GetMouseState(&x, &y);
+
+        save_button.is_hovered = Button_is_mouse_inside(&save_button, window->renderer, x, y);
+        load_button.is_hovered = Button_is_mouse_inside(&load_button, window->renderer, x, y);
+
         if (mouse_button_pressed[LEFT_BUTTON] && !screen_button_pressed) {
-            int x,y;
-            SDL_GetMouseState(&x, &y);
             int screen_button_pressed = 0;
             for(int i = 0; i < NUM_TILES; i++) {
-                if (Button_is_mouse_inside(&tile_buttons[i], x, y)) {
+                if (Button_is_mouse_inside(&tile_buttons[i], window->renderer, x, y)) {
+                    tile_buttons[selected_tile].is_active = 0;
+                    tile_buttons[i].is_active = 1;
                     selected_tile = i;
                     screen_button_pressed = 1;
                 }
@@ -217,6 +249,9 @@ int main(int argc, char** argv)
             Button_render(&tile_buttons[i], window->renderer);
         }
         TextBox_render_bg(&save_box, window->renderer);
+
+        Button_render(&save_button, window->renderer);
+        Button_render(&load_button, window->renderer);
 
         Window_present(window);
     }

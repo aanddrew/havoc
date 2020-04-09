@@ -15,6 +15,6 @@ void MainMenu_deinit();
 
 void MainMenu_Render(SDL_Renderer* render);
 
-int MainMenu_pressed_button(int x, int y);
+int MainMenu_pressed_button(SDL_Renderer* renderer, int x, int y);
 
 #endif

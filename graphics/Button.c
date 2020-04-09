@@ -10,6 +10,8 @@ void Button_init(Button* self) {
 	self->rect.w = 0;
 	self->rect.h = 0;
 	self->texture = NULL;
+    self->is_active = 0;
+    self->is_hovered = 0;
 }
 
 void Button_deinit(Button* self) {
@@ -62,12 +64,44 @@ void Button_render(Button* self, SDL_Renderer* renderer) {
     temp_rect.y = self->rect.y + (self->rect.y < 0 ? screen_h : 0);
     temp_rect.w = self->rect.w;
     temp_rect.h = self->rect.h;
+
+    if (self->is_hovered) {
+        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        SDL_RenderFillRect(renderer, &temp_rect);
+    }
+    
 	SDL_RenderCopy(renderer, self->texture, NULL, &temp_rect);
+
+    if (self->is_active) {
+        SDL_Color border_color = { 255, 255, 255, 255 };
+        SDL_Rect copy = self->rect;
+        for(int i = 0; i < 3; i++) {
+            SDL_SetRenderDrawColor(renderer, border_color.r, border_color.g,border_color.b,border_color.a);
+            SDL_RenderDrawRect(renderer, &copy);
+            copy.x++;
+            copy.y++;
+            copy.w -=2;
+            copy.h -=2;
+            border_color.r -=50;
+            border_color.g -=50;
+            border_color.b -=50;
+        }
+    }
 }
 
-int Button_is_mouse_inside(Button* self, int x, int y) {
-	return (x >= self->rect.x) &&
-		(x <= self->rect.x + self->rect.w) &&
-		(y >= self->rect.y) &&
-		(y <= self->rect.y + self->rect.h);
+void Button_get_screen_coords(Button*self, SDL_Renderer* renderer, int* x, int* y) {
+    int screen_w, screen_h;
+    SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
+    *x = self->rect.x + (self->rect.x < 0 ? screen_w : 0);
+    *y = self->rect.y + (self->rect.y < 0 ? screen_h : 0);
+}
+
+int Button_is_mouse_inside(Button* self, SDL_Renderer* renderer, int x, int y) {
+    int self_x, self_y;
+    Button_get_screen_coords(self, renderer, &self_x, &self_y);
+
+	return (x >= self_x) &&
+		(x <= self_x + self->rect.w) &&
+		(y >= self_y) &&
+		(y <= self_y + self->rect.h);
 }

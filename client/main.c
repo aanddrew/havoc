@@ -92,7 +92,7 @@ int ConnectMenu_Loop(Window* window) {
             case SDL_MOUSEBUTTONDOWN: {
                 int mousex, mousey;
                 SDL_GetMouseState(&mousex, &mousey);
-                int button_pressed = ConnectMenu_pressed_button(mousex, mousey);
+                int button_pressed = ConnectMenu_pressed_button(window->renderer, mousex, mousey);
                 switch (button_pressed) {
                 case CONNECTMENU_JOIN_BUTTON:
                     ConnectMenu_getip(server_hostname, 512);
@@ -130,7 +130,7 @@ int MainMenu_Loop(Window* window) {
 				case SDL_MOUSEBUTTONDOWN: {
 					int mousex, mousey;
 					SDL_GetMouseState(&mousex, &mousey);
-					int button = MainMenu_pressed_button(mousex, mousey);
+					int button = MainMenu_pressed_button(window->renderer, mousex, mousey);
 					if (button >= 0) {
 						switch (button) {
                         case QUIT_BUTTON:    done = 1; ret = EXIT_PROGRAM; break;
