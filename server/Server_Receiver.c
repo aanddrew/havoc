@@ -66,7 +66,7 @@ static int listen_fun(void* arg) {
             //new client connecting
             int id = Pool_get_client_id(temp_packet->address);
             if (id < 0) {
-                printf("new client connected\n");
+                printf("new client connected, id: %d\n", num_clients);
                 //increment num_clients
                 SDL_LockMutex(shared_pool.clients_mutex);
                     shared_pool.num_clients++;
@@ -102,7 +102,6 @@ static int listen_fun(void* arg) {
                     //now just copy the original message
                     clone_packet(temp_packet, cloned_pack, 4);
                     Vector_push(shared_pool.received, cloned_pack);
-                    printf("Received\n");
                 SDL_UnlockMutex(shared_pool.received_mutex);
             }
         }

@@ -4,11 +4,11 @@
 
 #include "../SDL_FontCache/SDL_FontCache.h"
 
-#include "../graphics/Window.h"
-#include "../graphics/Dolly.h"
-#include "../graphics/Camera.h"
-#include "../graphics/Button.h"
-#include "../graphics/TextBox.h"
+#include "../gui/Window.h"
+#include "../gui/Dolly.h"
+#include "../gui/Camera.h"
+#include "../gui/Button.h"
+#include "../gui/TextBox.h"
 
 #include "Map.h"
 

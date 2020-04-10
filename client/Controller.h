@@ -3,8 +3,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "Player.h"
-#include "../../graphics/Camera.h"
+#include "../game/Player.h"
+#include "../gui/Camera.h"
 
 //
 // Updates a player object based on inputs from SDL

@@ -1,6 +1,6 @@
 #include "ConnectMenu.h"
-#include "../../graphics/TextBox.h"
-#include "../../graphics/Button.h"
+#include "../../gui/TextBox.h"
+#include "../../gui/Button.h"
 
 #include "../../SDL_FontCache/SDL_FontCache.h"
 

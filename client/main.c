@@ -4,19 +4,23 @@
 
 #include "../SDL_FontCache/SDL_FontCache.h"
 
-#include "../graphics/Window.h"
-#include "../graphics/Dolly.h"
-#include "../graphics/Camera.h"
+#include "../gui/Window.h"
+#include "../gui/Dolly.h"
+#include "../gui/Camera.h"
 
-#include "game/Player.h"
-#include "game/Controller.h"
-#include "game/Projectile.h"
+#include "../game/Player.h"
+#include "../game/Projectile.h"
+#include "../game/Game.h"
+#include "Controller.h"
 
 #include "network/Client_Pool.h"
 #include "network/Client_Sender.h"
 #include "network/Client_Receiver.h"
 #include "network/Network.h"
-#include "network/Message.h"
+
+#include "../utils/Network_utils.h"
+
+#include "../gui/GameRenderer.h"
 
 #include "menus/MainMenu.h"
 #include "menus/ConnectMenu.h"
@@ -161,7 +165,7 @@ int MainMenu_Loop(Window* window) {
 }
 
 int Game_Loop(Window* window) {
-    Proj_init_all_sprites(window->renderer);
+
     /* Initialize Network */
     int online = 0;
     Network_init();
@@ -178,25 +182,18 @@ int Game_Loop(Window* window) {
 
     /* Initialize Game */
 
-	#define MAX_PLAYERS 16
-    Player* players[MAX_PLAYERS];
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        players[i] = NULL;
-    }
+    Game_init();
+    GameRenderer_init(window->renderer);
 
-    players[our_id] = malloc(sizeof(Player));
-    Player_init_wizard(players[our_id], window->renderer);
+    Player* our_player = Player_connect_with_id("the player", our_id);
 
     Camera cam;
     Camera_init(&cam, window->renderer);
 
     Controller c;
     Controller_init(&c);
-    c.player = players[our_id];
+    c.player = our_player;
     c.cam = &cam;
-
-    SDL_Delay(500);
-
 
     int current_time = SDL_GetTicks();
     int dt = 0;
@@ -244,7 +241,7 @@ int Game_Loop(Window* window) {
             //SEND our information to the server
             //
 
-            UDPpacket* pos_pack = Network_create_player_packet(players[our_id]);
+            UDPpacket* pos_pack = Network_create_player_packet(our_player);
             Network_send_packet(pos_pack);
 
             //
@@ -258,18 +255,19 @@ int Game_Loop(Window* window) {
                 Uint32 id = SDLNet_Read32(pack->data);
                 Uint32 message_type = SDLNet_Read32(pack->data + 4);
 
-                if (players[id] == NULL) {
-                    players[id] = malloc(sizeof(Player));
-                    Player_init_wizard(players[id], window->renderer);
+                //add new player to the game
+                if (!Player_get(id)) {
+                    Player_connect("new player", NULL);
                 }
-
+                
+                //all other events
                 switch (message_type) {
                 case PLAYER_UPDATE:
                     if (id != our_id)
-                        Network_decipher_player_packet(pack, players[id]);
+                        Network_decipher_player_packet(pack, Player_get(id));
                     break;
                 case PROJECTILE_LAUNCH:
-                    Network_deciper_projectile_packet(pack, NULL);
+                    Network_decipher_projectile_packet(pack, NULL);
                     break;
                 }
 
@@ -281,32 +279,17 @@ int Game_Loop(Window* window) {
 
         float dt_float = ((float)dt) / 1000.0f;
         Controller_update(&c, dt_float, &cam);
-        Proj_update_all(dt_float);
+        Game_update(dt_float);
 
         Window_clear(window);
-
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (players[i] != NULL) {
-                Player_update(players[i], dt_float);
-                Dolly_render(players[i]->sprite, window->renderer, &cam);
-            }
-        }
-        Proj_render_all(window->renderer, &cam);
-
+        GameRenderer_render(window->renderer, &cam);
         Window_present(window);
     }
 
     //
     // Cleanup down here
     //
-
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (players[i] != NULL && players[i]->sprite != NULL) {
-            Dolly_delete(players[i]->sprite);
-            free(players[i]->sprite);
-        }
-    }
-
+    
     Proj_cleanup_all_sprites();
 
     if (online) {

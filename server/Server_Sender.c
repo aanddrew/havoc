@@ -21,7 +21,6 @@ static int thread_fun(void* arg) {
 
         SDL_LockMutex(pool->sending_mutex);
         while(pool->sending->num > 0) {
-            printf("sending...\n");
             UDPpacket* pack = Vector_pop(pool->sending);
 
             SDL_LockMutex(pool->clients_mutex);

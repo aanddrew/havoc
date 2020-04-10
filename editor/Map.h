@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "../graphics/Dolly.h"
+#include "../gui/Dolly.h"
 
 #define MAP_WIDTH 128
 

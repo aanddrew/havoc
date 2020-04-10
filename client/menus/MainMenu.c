@@ -1,5 +1,5 @@
 #include "MainMenu.h"
-#include "../../graphics/Button.h"
+#include "../../gui/Button.h"
 
 #include <SDL2/SDL_ttf.h>
 #include "../../SDL_FontCache/SDL_FontCache.h"

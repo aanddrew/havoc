@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+Vector2d Vector2d_zero = {0.0f, 0.0f};
+
 Vector2d Vector2d_multiply(Vector2d v, float scalar) {
     Vector2d ret;
     ret.x = v.x * scalar;
@@ -24,12 +26,10 @@ Vector2d Vector2d_subtract(Vector2d v1, Vector2d v2) {
     return ret;
 }
 
-static Vector2d Vector_zero = {0.0f, 0.0f};
-
 Vector2d Vector2d_normalize(Vector2d v) {
     float mag = Vector2d_magnitude(v);
     if (mag == 0.0f) {
-        return Vector_zero;
+        return Vector2d_zero;
     }
     return Vector2d_multiply(v, 1.0f/ mag);
 }

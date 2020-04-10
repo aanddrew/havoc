@@ -11,7 +11,9 @@ typedef struct {
     float y;
 } Vector2d;
 
-//returns v1 - v2
+extern Vector2d Vector2d_zero;
+
+//returns v1 $OPERATION v2
 Vector2d Vector2d_multiply(Vector2d v, float scalar);
 Vector2d Vector2d_add(Vector2d v1, Vector2d v2);
 Vector2d Vector2d_subtract(Vector2d v1, Vector2d v2);
