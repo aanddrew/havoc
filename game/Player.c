@@ -53,7 +53,7 @@ Player* Player_connect_with_id(char* name, int id) {
     }
 
     Player_init(&players[id]);
-    players[id].name = name;
+    players[id].name = strdup(name);
     players[id].is_connected = 1;
     return &players[id];
 }
@@ -77,6 +77,14 @@ int Player_disconnect(int id) {
     Player* player = Player_get(id);
     player->is_connected = 0;
     free(player->name);
+}
+
+void Player_set_name(char* name, int id) {
+    Player* player = Player_get(id);
+    if (!player) return;
+
+    free(player->name);
+    player->name = strdup(name);
 }
 
 int Player_num_players() {

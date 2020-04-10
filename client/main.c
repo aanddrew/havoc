@@ -7,6 +7,8 @@
 #include "../gui/Window.h"
 #include "../gui/Dolly.h"
 #include "../gui/Camera.h"
+#include "../gui/Fonts.h"
+#include "../gui/GameRenderer.h"
 
 #include "../game/Player.h"
 #include "../game/Projectile.h"
@@ -20,8 +22,6 @@
 
 #include "../utils/Network_utils.h"
 
-#include "../gui/GameRenderer.h"
-
 #include "menus/MainMenu.h"
 #include "menus/ConnectMenu.h"
 
@@ -30,6 +30,7 @@
 #endif
 
 char server_hostname[512];
+char wish_name[64];
 
 enum MENU_RET {
     EXIT_PROGRAM,
@@ -46,6 +47,7 @@ int Game_Loop(Window* window);
 int main(int argc, char** argv)
 {
     Window* window = Window_init();
+    Fonts_init(window->renderer);
     int current_state = MAIN_MENU;
 
     while (current_state != EXIT_PROGRAM) {
@@ -65,6 +67,7 @@ int main(int argc, char** argv)
         }
     }
 
+    Fonts_deinit();
     Window_delete(window);
 }
 
@@ -185,7 +188,9 @@ int Game_Loop(Window* window) {
     Game_init();
     GameRenderer_init(window->renderer);
 
-    Player* our_player = Player_connect_with_id("the player", our_id);
+    Player* our_player = Player_connect_with_id("default", our_id);
+
+    const char* wish_name = "fishy";
 
     Camera cam;
     Camera_init(&cam, window->renderer);
@@ -196,6 +201,7 @@ int Game_Loop(Window* window) {
     c.cam = &cam;
 
     int current_time = SDL_GetTicks();
+    int last_name_request_time = SDL_GetTicks();
     int dt = 0;
     SDL_Event e;
     int done = 0;
@@ -244,6 +250,17 @@ int Game_Loop(Window* window) {
             UDPpacket* pos_pack = Network_create_player_packet(our_player);
             Network_send_packet(pos_pack);
 
+            if (strcmp(our_player->name, wish_name)) {
+                UDPpacket* namepack = Network_create_change_name_packet(wish_name);
+                Network_send_packet(namepack);
+            }
+            
+            if (current_time - last_name_request_time >= 1000) {
+                //printf("REQUESTING NAMES\n");
+                UDPpacket* namerequestpack = Network_create_get_names_packet();
+                Network_send_packet(namerequestpack);
+            }
+
             //
             // Receive Information from the server
             //
@@ -256,8 +273,8 @@ int Game_Loop(Window* window) {
                 Uint32 message_type = SDLNet_Read32(pack->data + 4);
 
                 //add new player to the game
-                if (!Player_get(id)) {
-                    Player_connect("new player", NULL);
+                if (id != -1 && !Player_get(id)) {
+                    Player_connect_with_id("new player", id);
                 }
                 
                 //all other events
@@ -268,6 +285,14 @@ int Game_Loop(Window* window) {
                     break;
                 case PROJECTILE_LAUNCH:
                     Network_decipher_projectile_packet(pack, NULL);
+                    break;
+                case CHANGE_NAME:
+                    Network_decipher_change_name_packet(pack);
+                    break;
+                case RECEIVE_NAMES:
+                    printf("RECEIVING NAMES\n");
+                    Network_decipher_receive_names_packet(pack);
+                    last_name_request_time = current_time;
                     break;
                 }
 

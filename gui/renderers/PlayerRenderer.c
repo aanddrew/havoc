@@ -1,5 +1,7 @@
 #include "PlayerRenderer.h"
 
+#include "../Fonts.h"
+
 static Dolly wizard;
 
 void Player_init_all_sprites(SDL_Renderer* renderer) {
@@ -24,8 +26,18 @@ void Player_render_all(SDL_Renderer* renderer, const Camera* cam) {
     for(int i = 0; i < Player_num_players(); i++) {
         Player* p = Player_get(i);
         if (p) {
-            Player_update_sprite(Player_get(i));
+            Player_update_sprite(p);
             Dolly_render(&wizard, renderer, cam);
+            float name_x, name_y;
+            Camera_transform_point(cam, p->pos.x, p->pos.y, &name_x, &name_y);
+            //render player's name
+            //printf("%f, %f, %s\n", name_x, name_y, p->name);
+            int fontwidth = FC_GetWidth(Fonts_getfont(8), p->name);
+            FC_Draw(Fonts_getfont(8), 
+                        renderer, 
+                        (int)name_x - fontwidth / 2 + 4,
+                        (int)name_y - wizard.rect.h/2 - 60*Camera_get_scale(cam),
+                        p->name);
         }
     }
 }

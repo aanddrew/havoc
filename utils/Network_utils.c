@@ -91,3 +91,77 @@ void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj) {
 
     Proj_launch((int) kind, pos, dir, NULL);
 }
+
+#define MAX_NAME_SIZE 64
+UDPpacket* Network_create_change_name_packet(const char* name) {
+    UDPpacket* pack = SDLNet_AllocPacket(4 + strlen(name) + 1);
+    pack->len = 4 + strlen(name) + 1;
+    SDLNet_Write32(CHANGE_NAME, pack->data);
+
+    for(int i = 0; i < strlen(name) + 1 && i < MAX_NAME_SIZE; i++) {
+        pack->data[i + 4] = name[i];
+    }
+
+    return pack;
+}
+
+void Network_decipher_change_name_packet(UDPpacket* pack) {
+    int id = SDLNet_Read32(pack->data);
+
+    char buffer[MAX_NAME_SIZE];
+    int i = 0;
+    for(char* c = (char*) (pack->data + 8); *c != '\0'; c++) {
+        buffer[i] = *c;
+        i++;
+    }
+    Player_set_name(buffer, id);
+}
+
+UDPpacket* Network_create_get_names_packet() {
+    UDPpacket* pack = SDLNet_AllocPacket(4);
+    pack->len = 4;
+    SDLNet_Write32(GET_NAMES, pack->data);
+    return pack;
+}
+
+void Network_decipher_get_names_packet(UDPpacket* pack) {
+    
+}
+
+UDPpacket* Network_create_receive_names_packet() {
+    UDPpacket* pack = SDLNet_AllocPacket(MAX_NAME_SIZE * 10 + 8 + 10);
+    SDLNet_Write32(-1, pack->data);
+    SDLNet_Write32(RECEIVE_NAMES, pack->data + 4);
+    char* head = (char*) (pack->data + 8);
+    for(int i = 0; i < Player_num_players(); i++) {
+        Player* p = Player_get(i);
+        if (p) {
+            SDLNet_Write32(i, head);
+            head+= 4;
+            for(int i = 0; i < strlen(p->name)+1; i++) {
+                *head = p->name[i];
+                head++;
+            }
+        }
+    }
+    pack->len = (int)(((Uint8*)head) - pack->data) + 1;
+    return pack;
+}
+
+void Network_decipher_receive_names_packet(UDPpacket* pack) {
+    char* head = (char*) (pack->data + 8);
+    char* end = (char*) (pack->data + pack->len);
+    printf("pack->len = %d\n", pack->len);
+    while(head <= end - 4) {
+        int id = SDLNet_Read32(head);
+        head += 4;
+        char name[MAX_NAME_SIZE];
+        int i = 0;
+        while(*head != '\0' && i < MAX_NAME_SIZE - 1) {
+            name[i] = *head;
+            head++;
+        }
+        printf("id %d; name %s\n", id, name);
+        Player_set_name(name, id);
+    }
+}

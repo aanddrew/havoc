@@ -10,6 +10,7 @@
 
 #include "../game/Projectile.h"
 #include "../game/Player.h"
+#include "../game/Game.h"
 #include "../utils/Network_utils.h"
 
 #define HAVOC_SERVER
@@ -19,8 +20,9 @@ static int delta = 10; //10 ms between update times
 int main() {
     SDL_Init(0);
     SDLNet_Init();
-
     Pool_init();
+
+    Game_init();
 
     Server_Receiver_run(23432);
     Server_Sender_run();
@@ -36,8 +38,21 @@ int main() {
                 int id = SDLNet_Read32(pack->data);
                 int type = SDLNet_Read32(pack->data + 4);
                 switch(type) {
+                case PLAYER_UPDATE:
+                    if (!Player_get(id)) {
+                        Player_connect("unknown_player", NULL);
+                    }
+                    break;
+                case CHANGE_NAME:
+                    Player_set_name(pack->data + 8, id);
+                    break;
                 case PROJECTILE_LAUNCH:
-                        Network_decipher_projectile_packet(pack, NULL);
+                        //Network_decipher_projectile_packet(pack, NULL);
+                    break;
+                case GET_NAMES:
+                    printf("Get names received\n");
+                    SDLNet_FreePacket(pack);
+                    pack = Network_create_receive_names_packet();
                     break;
                 }
                 SDL_LockMutex(shared_pool.sending_mutex);
