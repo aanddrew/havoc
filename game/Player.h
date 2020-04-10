@@ -26,7 +26,7 @@ void Player_update_all(float dt);
 
 Player* Player_connect_with_id(char* name, int id);
 Player* Player_connect(char* name, int* id);
-int Player_disconnect(int id);
+void Player_disconnect(int id);
 void Player_set_name(char* name, int id);
 
 //gets the number of players in the game

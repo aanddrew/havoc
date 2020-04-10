@@ -4,7 +4,6 @@
 #include "../global.h"
 
 static Player players[16];
-static short num_players = 0;
 static short size_players = 16;
 
 void Player_init(Player* self) {
@@ -73,7 +72,7 @@ Player* Player_connect(char* name, int* id) {
     return Player_connect_with_id(name, temp_id);
 }
 
-int Player_disconnect(int id) {
+void Player_disconnect(int id) {
     Player* player = Player_get(id);
     player->is_connected = 0;
     free(player->name);

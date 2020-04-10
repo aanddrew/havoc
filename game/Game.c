@@ -1,9 +1,5 @@
 #include "Game.h"
 
-//static const int MAX_PLAYERS = 16;
-#define MAX_PLAYERS 16
-static Player players[MAX_PLAYERS];
-
 void Game_init() {
     Proj_init_all();
 }

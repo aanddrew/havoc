@@ -44,13 +44,12 @@ int main() {
                     }
                     break;
                 case CHANGE_NAME:
-                    Player_set_name(pack->data + 8, id);
+                    Player_set_name((char*) (pack->data + 8), id);
                     break;
                 case PROJECTILE_LAUNCH:
                         //Network_decipher_projectile_packet(pack, NULL);
                     break;
                 case GET_NAMES:
-                    printf("Get names received\n");
                     SDLNet_FreePacket(pack);
                     pack = Network_create_receive_names_packet();
                     break;

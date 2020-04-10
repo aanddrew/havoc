@@ -190,7 +190,7 @@ int Game_Loop(Window* window) {
 
     Player* our_player = Player_connect_with_id("default", our_id);
 
-    const char* wish_name = "fishy";
+    const char* wish_name = "fishy_bites_really_long_name_more_than_32";
 
     Camera cam;
     Camera_init(&cam, window->renderer);
@@ -290,7 +290,6 @@ int Game_Loop(Window* window) {
                     Network_decipher_change_name_packet(pack);
                     break;
                 case RECEIVE_NAMES:
-                    printf("RECEIVING NAMES\n");
                     Network_decipher_receive_names_packet(pack);
                     last_name_request_time = current_time;
                     break;

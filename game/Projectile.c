@@ -82,6 +82,10 @@ Projectile* Proj_launch(int kind, Vector2d pos, Vector2d dir, int* index)
         num_projectiles++;
     }
 
+    if (index) {
+        *index = temp_index;
+    }
+
     Projectile* self = Proj_launch_at_index(kind, pos, dir, temp_index);
     return self;
 }
