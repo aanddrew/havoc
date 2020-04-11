@@ -25,6 +25,10 @@ void TextBox_init(TextBox* self, const char* placeholder, FC_Font* font) {
         cursor_color.a = 255;
         last_blink_time = SDL_GetTicks();
     }
+    for(int i = 0; i < TEXTBOX_BUFFER_SIZE; i++) {
+        self->buffer[i] = '\0';
+    }
+    self->is_hidden = 0;
     init_counts++;
 }
 void TextBox_deinit(TextBox* self) {}
@@ -79,6 +83,7 @@ const char* TextBox_gettext(TextBox* self) {
 }
 
 void TextBox_render(TextBox* self, SDL_Renderer* renderer) {
+    if (self->is_hidden) return;
     //check if we should flip the cursor
     if (SDL_GetTicks() > last_blink_time + BLINK_INTERVAL) {
         is_blinking = !is_blinking;
@@ -136,6 +141,7 @@ void TextBox_render(TextBox* self, SDL_Renderer* renderer) {
 }
 
 void TextBox_render_bg(TextBox* self, SDL_Renderer* renderer) {
+    if (self->is_hidden) return;
     SDL_Color black;
     black.r = 0;
     black.g = 0;
@@ -145,6 +151,7 @@ void TextBox_render_bg(TextBox* self, SDL_Renderer* renderer) {
 }
 
 void TextBox_render_bg_color(TextBox* self, SDL_Renderer* renderer, SDL_Color color) {
+    if (self->is_hidden) return;
     int screen_w, screen_h;
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
 

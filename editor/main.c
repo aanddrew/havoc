@@ -9,8 +9,10 @@
 #include "../gui/Camera.h"
 #include "../gui/Button.h"
 #include "../gui/TextBox.h"
+#include "../gui/Menu.h"
 
 #include "Map.h"
+#include "MapRenderer.h"
 
 #ifdef WIN32
     #define strdup _strdup
@@ -41,51 +43,50 @@ enum mouse_binds {
 };
 static int mouse_button_pressed[NUM_BUTTONS];
 
-static Button tile_buttons[NUM_TILES];
+enum ITEMS {
+    SAVE_BTN,
+    LOAD_BTN,
+    SAVE_BOX,
+    TILE_BTN,
+    SIZE_BOX,
+    NUM_ITEMS,
+};
 
-static TextBox save_box;
-FC_Font* font = NULL;
+static int IDS[NUM_ITEMS];
+#define MAX_NUM_TILES 64
+static int TILE_IDS[64];
+static int num_tiles = 0;
 
-static Button save_button;
-static Button load_button;
+static int brush_size = 1;
+
+static FC_Font* font = NULL;
+static Window* window;
+
+static Menu top_menu;
+
+void init_top_menu();
 
 int main(int argc, char** argv)
 {
-    Window* window = Window_init();
+    window = Window_init();
 
     Camera cam;
     Camera_init(&cam, window->renderer);
 
-    Map map;
-    Map_init(&map, window->renderer, NULL);
+    MapRenderer_init(window->renderer);
 
-    for(int i = 0; i < NUM_TILES; i++) {
-        Button_init_icon(&tile_buttons[i], window->renderer, tile_files[i]);
-        tile_buttons[i].rect.y = i * tile_buttons[i].rect.h;
-    }
+    Map map;
+    Map_init(&map, NULL);
 
     font = FC_CreateFont();
-    FC_LoadFont(font, window->renderer, "../res/fonts/5ceta_mono.ttf", 10, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
+    FC_LoadFont(font, window->renderer, "../res/fonts/RobotoMono-Bold.ttf", 16, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
 
-    TextBox_init(&save_box, "output file name", font);
-    save_box.x = 25;
-    save_box.y = -30;
-    save_box.box_width = 200;
-
-    TTF_Font* font_ttf = TTF_OpenFont("../res/fonts/5ceta_mono.ttf", 10);
-    if (!font_ttf) {
-        printf("Unable to load font: %s\n", SDL_GetError());
+    if (!font) {
+        printf("Error loading font: %s\n", SDL_GetError());
     }
-    SDL_Color white = {255, 255, 255 ,255 };
-    Button_init_text(&save_button, window->renderer, font_ttf, "save", white);
-    Button_init_text(&load_button, window->renderer, font_ttf, "load", white);
-    save_button.rect.x = 25;
-    save_button.rect.y = -60;
-    load_button.rect.x = 90;
-    load_button.rect.y = -60;
 
-    TextBox* current_textbox = NULL;
-
+    init_top_menu();
+    
     int selected_tile = 0;
     int screen_button_pressed = 0;
 
@@ -102,83 +103,35 @@ int main(int argc, char** argv)
 
         while (SDL_PollEvent(&e))
         {
+            Menu_pass_event(&top_menu, window->renderer, &e);
             switch (e.type)
             {
             case SDL_KEYDOWN:
-                if (!current_textbox) {
-                    for(int i = 0; i < NUM_BINDS; i++) {
-                        if (e.key.keysym.sym == BINDS[i]) {
-                            bind_pressed[i] = 1;
+                for(int i = 0; i < NUM_BINDS; i++) {
+                    if (e.key.keysym.sym == BINDS[i]) {
+                        bind_pressed[i] = 1;
+                    }
+                    if (e.key.keysym.sym == SDLK_RETURN) {
+                        const TextBox* box = Menu_get_selected_textbox();
+                        if (box) {
+                            int size;
+                            if (sscanf(box->buffer, "%d", &size)) {
+                                brush_size = size;
+                            }
                         }
-                    } 
-                }
-                else {
-                    if (e.key.keysym.sym == SDLK_ESCAPE) {
-                        current_textbox->is_active = 0;
-                        current_textbox = NULL;
                     }
-                    else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-                        TextBox_delete_end(current_textbox);
-                    }
-                    else if (e.key.keysym.sym == SDLK_RETURN) {
-                        Map_save(&map, current_textbox->buffer);
-                    }
-                }
+                } 
                 break;
             case SDL_KEYUP:
-                if (!current_textbox) {
-                    for(int i = 0; i < NUM_BINDS; i++) {
-                        if (e.key.keysym.sym == BINDS[i]) {
-                            bind_pressed[i] = 0;
-                        }
-                    } 
-                }
-                break;
-            case SDL_TEXTEDITING:
-                if (current_textbox) {
-                    printf("%s\n", e.edit.text);
-                }
-                break;
-            case SDL_TEXTINPUT:
-                if (current_textbox) {
-                    TextBox_append(current_textbox, e.text.text);
-                }
+                for(int i = 0; i < NUM_BINDS; i++) {
+                    if (e.key.keysym.sym == BINDS[i]) {
+                        bind_pressed[i] = 0;
+                    }
+                } 
                 break;
             case SDL_MOUSEBUTTONDOWN: {
                 if(e.button.button == SDL_BUTTON_LEFT) {
-                    int x, y;
-                    SDL_GetMouseState(&x, &y);
-                    if (current_textbox == NULL) {
-                        if (TextBox_is_mouse_inside(&save_box,window->renderer, x, y)) {
-                            current_textbox = &save_box;
-                            current_textbox->is_active = 1;
-                            for(int i = 0; i < NUM_BINDS; i++) {
-                                bind_pressed[i] = 0;
-                            }
-                            SDL_StartTextInput();
-                        }
-                        else {
-                            mouse_button_pressed[LEFT_BUTTON] = 1;
-                        }
-                    }
-                    else {
-                        if (!TextBox_is_mouse_inside(&save_box, window->renderer, x, y)) {
-                            current_textbox->is_active= 0;
-                            current_textbox = NULL;
-                            mouse_button_pressed[LEFT_BUTTON] = 1;
-                            SDL_StopTextInput();
-                        }
-                    }
-
-                    if (Button_is_mouse_inside(&save_button, window->renderer, x, y)) {
-                        Map_save(&map, save_box.buffer);
-                    }
-                    else if (Button_is_mouse_inside(&load_button, window->renderer, x, y)) {
-                        Map_load(&map, save_box.buffer);
-                    }
-                    else {
-                    }
-   
+                    mouse_button_pressed[LEFT_BUTTON] = 1;
                 }
             } break;
             case SDL_MOUSEBUTTONUP:
@@ -207,54 +160,160 @@ int main(int argc, char** argv)
             }
         }
 
+        //if we're typing in textbox dont move camera around
+        if (Menu_get_selected_textbox()) {
+            for(int i = 0; i < NUM_BINDS; i++) {
+                bind_pressed[i] = 0;
+            }
+        }
+
+        //moving camera
         float move_amnt = camera_speed * float_dt;
         if (bind_pressed[UP])    { Camera_translate(&cam, 0, -move_amnt); }
         if (bind_pressed[DOWN])  { Camera_translate(&cam, 0, move_amnt);  }
         if (bind_pressed[LEFT])  { Camera_translate(&cam, -move_amnt, 0); }
         if (bind_pressed[RIGHT]) { Camera_translate(&cam, move_amnt, 0);  }
 
-        int x,y;
-        SDL_GetMouseState(&x, &y);
-
-        save_button.is_hovered = Button_is_mouse_inside(&save_button, window->renderer, x, y);
-        load_button.is_hovered = Button_is_mouse_inside(&load_button, window->renderer, x, y);
-
-        if (mouse_button_pressed[LEFT_BUTTON] && !screen_button_pressed) {
-            int screen_button_pressed = 0;
-            for(int i = 0; i < NUM_TILES; i++) {
-                if (Button_is_mouse_inside(&tile_buttons[i], window->renderer, x, y)) {
-                    tile_buttons[selected_tile].is_active = 0;
-                    tile_buttons[i].is_active = 1;
-                    selected_tile = i;
-                    screen_button_pressed = 1;
+        screen_button_pressed = 0;
+        //check for button presses in top menu
+        if (top_menu.selected_button >= 0) {
+            if (top_menu.selected_button == IDS[SAVE_BTN]) {
+                Map_save(&map, Menu_get_textbox(&top_menu, IDS[SAVE_BOX])->buffer);
+            }
+            else if(top_menu.selected_button == IDS[LOAD_BTN]) {
+                Map_load(&map, Menu_get_textbox(&top_menu, IDS[SAVE_BOX])->buffer);
+            }
+            else if (top_menu.selected_button == IDS[TILE_BTN]) {
+                for(int i = 0; i < num_tiles; i++) {
+                    Button* btn = Menu_get_button(&top_menu, TILE_IDS[i]);
+                    btn->is_hidden = !btn->is_hidden;
                 }
             }
+            for(int i = 0; i < num_tiles; i++) {
+                if (top_menu.selected_button == TILE_IDS[i]) {
+                    int atlas_w = MapRenderer_get_texture_width();
+                    int atlas_h = MapRenderer_get_texture_height();
+
+                    Button* tile_btn = Menu_get_button(&top_menu, IDS[TILE_BTN]);
+                    tile_btn->srcrect.x = i % (atlas_w / 64) * 64;
+                    tile_btn->srcrect.y = i / (atlas_w / 64) * 64;
+                    selected_tile = i;
+                }
+            }
+            top_menu.selected_button = -1;
+            screen_button_pressed = 1;
+            for(int i = 0; i < NUM_BUTTONS; i++) {
+                mouse_button_pressed[i] = 0;
+            }
+        }
+
+        //brush painting, unless a menu button was pressed
+        int x,y;
+        SDL_GetMouseState(&x, &y);
+        if (mouse_button_pressed[LEFT_BUTTON] && !screen_button_pressed) {
+            int screen_button_pressed = 0;
             if (!screen_button_pressed) {
                 int worldx, worldy;
                 Camera_get_mousestate_relative(&cam, &worldx, &worldy);
-                worldx /= 16;
-                worldy /= 16;
-                for(int brush_x = worldx - 1; brush_x <= worldx + 1; brush_x++) {
-                    for(int brush_y = worldy -1; brush_y <= worldy + 1; brush_y++) {
+                worldx /= 64;
+                worldy /= 64;
+                int radius = brush_size - 1;
+                for(int brush_x = worldx - radius; brush_x <= worldx + radius; brush_x++) {
+                    for(int brush_y = worldy -radius; brush_y <= worldy + radius; brush_y++) {
                         Map_set_tile(&map, selected_tile, brush_x, brush_y);
                     }
                 }
             }
         }
 
+        //rendering
         Window_clear(window);
-
         Map_render(&map, window->renderer, &cam);
-        for(int i = 0; i < NUM_TILES; i++) {
-            Button_render(&tile_buttons[i], window->renderer);
-        }
-        TextBox_render_bg(&save_box, window->renderer);
-
-        Button_render(&save_button, window->renderer);
-        Button_render(&load_button, window->renderer);
-
+        Menu_render(&top_menu, window->renderer);
         Window_present(window);
     }
    
+    MapRenderer_deinit();
     Window_delete(window);
+}
+
+void init_top_menu() {
+    Menu_init(&top_menu);
+
+    //save text box
+    TextBox save_box;
+    TextBox_init(&save_box, "output file name", font);
+    save_box.x = 25;
+    save_box.y = -30;
+    save_box.box_width = 200;
+
+    TTF_Font* font_ttf = TTF_OpenFont("../res/fonts/RobotoMono-Bold.ttf", 16);
+    if (!font_ttf) {
+        printf("Unable to load font: %s\n", SDL_GetError());
+    }
+    SDL_Color white = {255, 255, 255 ,255};
+
+    //save and load buttons
+    Button save_button;
+    Button load_button;
+
+    Button_init_text(&save_button, window->renderer, font_ttf, "save", white);
+    Button_init_text(&load_button, window->renderer, font_ttf, "load", white);
+    save_button.rect.x = 25;
+    save_button.rect.y = -60;
+    load_button.rect.x = 90;
+    load_button.rect.y = -60;
+
+    //tile button
+    Button tile_button;
+    Button_init_texture(&tile_button, MapRenderer_gettexture());
+    tile_button.rect.x = 0;
+    tile_button.rect.y = 0;
+    tile_button.rect.w = 64;
+    tile_button.rect.h = 64;
+
+    //init tile selector/atlast buttons
+    int atlas_w = MapRenderer_get_texture_width();
+    int atlas_h = MapRenderer_get_texture_height();
+    Button temp;
+    int atlas_startx = 70;
+    int atlas_starty = 20;
+
+    int index = 0;
+    for(int y = 0; y < atlas_h / 64; y++) {
+        for(int x = 0; x < atlas_w / 64; x++) {
+            if (index >= MAX_NUM_TILES) {
+                printf("Error: too many tiles in texture!!!\n");
+                break;
+            }
+            Button_init_texture(&temp, MapRenderer_gettexture());
+            temp.rect.x = atlas_startx + x * 64;
+            temp.rect.y = atlas_starty + y * 64;
+            temp.rect.w = 64;
+            temp.rect.h = 64;
+
+            temp.srcrect.x = x * 64;
+            temp.srcrect.y = y * 64;
+            temp.srcrect.w = 64;
+            temp.srcrect.h = 64;
+            TILE_IDS[index] = Menu_add_button(&top_menu, temp);
+            index++;
+        }
+    }
+    num_tiles = index;
+
+    //now do the cursor size box
+    TextBox size_box;
+    TextBox_init(&size_box, "cursor", font);
+    TextBox_append_char(&size_box, '1');
+    size_box.x = 0;
+    size_box.y = 96;
+    size_box.box_width = 64;
+
+    IDS[SIZE_BOX] = Menu_add_textbox(&top_menu, size_box);
+
+    IDS[SAVE_BTN] = Menu_add_button(&top_menu, save_button);
+    IDS[LOAD_BTN] = Menu_add_button(&top_menu, load_button);
+    IDS[SAVE_BOX] = Menu_add_textbox(&top_menu, save_box);
+    IDS[TILE_BTN] = Menu_add_button(&top_menu, tile_button);
 }

@@ -19,6 +19,7 @@ typedef struct {
 
     int box_width;
     int is_active;
+    int is_hidden;
 } TextBox;
 
 void TextBox_init(TextBox* self, const char* placeholder, FC_Font* font);

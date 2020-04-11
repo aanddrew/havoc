@@ -37,25 +37,46 @@ void Button_init_text(Button* self, SDL_Renderer* renderer,
 	TTF_SizeText(font, msg, &w, &h);
 	self->rect.w = w;
 	self->rect.h = h;
+
+    self->srcrect.x = 0;
+    self->srcrect.y = 0;
+    self->srcrect.w = w;
+    self->srcrect.h = h;
+
+    self->is_active = 0;
+    self->is_hidden = 0;
 }
 
 void Button_init_icon(Button* self, SDL_Renderer* renderer, const char* img_file) {
-    Button_init(self);
-
     SDL_Surface* surface = IMG_Load(img_file);
     if (!surface) {
         printf("Error in Button_init_icon: %s\n", SDL_GetError());
     }
-    self->texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surface);
     if (!surface || !self->texture) {
         printf("Error loading image in Button_init_icon: %s\n" ,SDL_GetError());
     }
+    Button_init_texture(self, tex);
     SDL_FreeSurface(surface);
+}
+
+void Button_init_texture(Button* self, SDL_Texture* tex) {
+    Button_init(self);
+    self->texture = tex;
     self->rect.w = 64;
     self->rect.h = 64;
+
+    self->srcrect.x = 0;
+    self->srcrect.y = 0;
+    self->srcrect.w = 64;
+    self->srcrect.h = 64;
+
+    self->is_active = 0;
+    self->is_hidden = 0;
 }
 
 void Button_render(Button* self, SDL_Renderer* renderer) {
+    if (self->is_hidden) return;
     int screen_w, screen_h;
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
 
@@ -70,7 +91,7 @@ void Button_render(Button* self, SDL_Renderer* renderer) {
         SDL_RenderFillRect(renderer, &temp_rect);
     }
     
-	SDL_RenderCopy(renderer, self->texture, NULL, &temp_rect);
+	SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
 
     if (self->is_active) {
         SDL_Color border_color = { 255, 255, 255, 255 };

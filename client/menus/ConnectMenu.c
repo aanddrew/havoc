@@ -18,7 +18,7 @@ static Button buttons[CONNECTMENU_NUM_BUTTONS];
 
 void ConnectMenu_init(SDL_Renderer* renderer) {
 	font = FC_CreateFont();
-    FC_LoadFont(font, renderer, "res/fonts/5ceta_mono.ttf", 20, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
+    FC_LoadFont(font, renderer, "res/fonts/RobotoMono-Bold.ttf", 20, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
 
 	TextBox_init(&ip_box, "type ip", font);
     ip_box.is_active = 1;
@@ -30,7 +30,7 @@ void ConnectMenu_init(SDL_Renderer* renderer) {
 	ip_box.x = w / 2 - 150;
 	ip_box.y = h / 2 - 40;
 
-	ttf_font = TTF_OpenFont("res/fonts/5ceta_mono.ttf", 14);
+	ttf_font = TTF_OpenFont("res/fonts/RobotoMono-Bold.ttf", 14);
 	for (int i = 0; i < CONNECTMENU_NUM_BUTTONS; i++) {
 		Button_init_text(&buttons[i], renderer, ttf_font, button_text[i], font_color);
 		buttons[i].rect.x = (w / 2) - 90+ 90 * i;

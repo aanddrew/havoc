@@ -1,6 +1,6 @@
 #include "Fonts.h"
 
-#define DEFAULT_FONT "res/fonts/5ceta_mono.ttf"
+#define DEFAULT_FONT "res/fonts/RobotoMono-Bold.ttf"
 
 #define NUM_FONT_SIZES 64
 FC_Font* fonts[NUM_FONT_SIZES];

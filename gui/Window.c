@@ -29,7 +29,9 @@ Window* Window_init() {
 		720, 
 		SDL_WINDOW_RESIZABLE
 	);
-	window->renderer = SDL_CreateRenderer(window->window, -1, SDL_RENDERER_PRESENTVSYNC);
+    int win_flags = SDL_RENDERER_PRESENTVSYNC;
+    //int win_flags = 0;
+	window->renderer = SDL_CreateRenderer(window->window, -1, win_flags);
 
     return window;
 }
