@@ -46,6 +46,7 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
         else {
             if (e->key.keysym.sym == SDLK_ESCAPE) {
                 current_textbox->is_active = 0;
+                self->selected_box = -1;
                 current_textbox = NULL;
             }
             else if (e->key.keysym.sym == SDLK_BACKSPACE) {
@@ -68,6 +69,7 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
                 if (TextBox_is_mouse_inside(box, renderer, x, y)) {
                     current_textbox = box;
                     current_textbox->is_active = 1;
+                    self->selected_box = i;
                     in_textbox = 1;
                     SDL_StartTextInput();
                     break;
@@ -92,6 +94,13 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
 
 const TextBox* Menu_get_selected_textbox() {
     return current_textbox;
+}
+
+void Menu_deselect_textbox() {
+    if (!current_textbox) return;
+
+    current_textbox->is_active = 0;
+    current_textbox = NULL;
 }
 
 void Menu_render(Menu* self, SDL_Renderer* renderer) {

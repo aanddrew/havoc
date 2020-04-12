@@ -9,10 +9,12 @@
 #include "../gui/Camera.h"
 #include "../gui/Fonts.h"
 #include "../gui/GameRenderer.h"
+#include "../editor/MapRenderer.h"
 
 #include "../game/Player.h"
 #include "../game/Projectile.h"
 #include "../game/Game.h"
+#include "../game/Map.h"
 #include "Controller.h"
 
 #include "network/Client_Pool.h"
@@ -103,6 +105,7 @@ int ConnectMenu_Loop(Window* window) {
                 switch (button_pressed) {
                 case CONNECTMENU_JOIN_BUTTON:
                     ConnectMenu_getip(server_hostname, 512);
+                    ConnectMenu_getname(wish_name, 64);
                     done = 1;
                     ret = GAME;
                     break;
@@ -168,7 +171,6 @@ int MainMenu_Loop(Window* window) {
 }
 
 int Game_Loop(Window* window) {
-
     /* Initialize Network */
     int online = 0;
     Network_init();
@@ -187,10 +189,12 @@ int Game_Loop(Window* window) {
 
     Game_init();
     GameRenderer_init(window->renderer);
+    MapRenderer_init(window->renderer);
+
+    Map map;
+    Map_init(&map, "editor/maps/test_map.hm");
 
     Player* our_player = Player_connect_with_id("default", our_id);
-
-    const char* wish_name = "fishy_bites_really_long_name_more_than_32";
 
     Camera cam;
     Camera_init(&cam, window->renderer);
@@ -304,8 +308,11 @@ int Game_Loop(Window* window) {
         float dt_float = ((float)dt) / 1000.0f;
         Controller_update(&c, dt_float, &cam);
         Game_update(dt_float);
+        
+        Map_collide_player(&map, our_player);
 
         Window_clear(window);
+        Map_render(&map, window->renderer, &cam);
         GameRenderer_render(window->renderer, &cam);
         Window_present(window);
     }
@@ -324,5 +331,7 @@ int Game_Loop(Window* window) {
         Network_disconnect();
         Network_deinit();
     }
+    GameRenderer_deinit();
+    MapRenderer_deinit();
     return 0;
 }

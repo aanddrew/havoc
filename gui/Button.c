@@ -86,12 +86,12 @@ void Button_render(Button* self, SDL_Renderer* renderer) {
     temp_rect.w = self->rect.w;
     temp_rect.h = self->rect.h;
 
+	SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
+
     if (self->is_hovered) {
-        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        SDL_SetRenderDrawColor(renderer, 0,0,0, 50);
         SDL_RenderFillRect(renderer, &temp_rect);
     }
-    
-	SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
 
     if (self->is_active) {
         SDL_Color border_color = { 255, 255, 255, 255 };

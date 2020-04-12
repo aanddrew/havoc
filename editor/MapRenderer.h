@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "Map.h"
+#include "../game/Map.h"
 #include "../gui/Camera.h"
 
 void MapRenderer_init(SDL_Renderer* renderer);

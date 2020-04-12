@@ -15,6 +15,7 @@ void ConnectMenu_deinit();
 void ConnectMenu_event(SDL_Event e);
 void ConnectMenu_render(SDL_Renderer* renderer);
 void ConnectMenu_getip(char* buf, int len);
+void ConnectMenu_getname(char* buf, int len);
 
 int ConnectMenu_pressed_button(SDL_Renderer* renderer, int x, int y);
 

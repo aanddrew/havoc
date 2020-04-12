@@ -3,7 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-const char* texture_file = "../res/map/havoc_textures.png";
+const char* texture_file = "res/map/havoc_textures.png";
 
 #define TILE_WIDTH 64
 static SDL_Surface* atlas_surface = NULL;
@@ -39,18 +39,20 @@ void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam) {
     destrect.w = TILE_WIDTH;
     destrect.h = TILE_WIDTH;
 
-    for(int x = 0; x < self->width; x++) {
-        for(int y = 0; y < self->height; y++) {
-            Uint16 tile = Map_get_tile(self, x, y);
+    for(int z = 0; z < self->depth; z++) {
+        for(int x = 0; x < self->width; x++) {
+            for(int y = 0; y < self->height; y++) {
+                Uint16 tile = Map_get_tile(self, x, y, z);
 
-            srcrect.x = (tile % atlas_width) * TILE_WIDTH;
-            srcrect.y = (tile / atlas_width) * TILE_WIDTH;
+                srcrect.x = (tile % atlas_width) * TILE_WIDTH;
+                srcrect.y = (tile / atlas_width) * TILE_WIDTH;
 
-            paintrect.x = x * TILE_WIDTH;
-            paintrect.y = y * TILE_WIDTH;
+                paintrect.x = x * TILE_WIDTH;
+                paintrect.y = y * TILE_WIDTH;
 
-            Camera_transform_rect(cam, &paintrect, &destrect);
-            SDL_RenderCopy(renderer, atlas_texture, &srcrect, &destrect);
+                Camera_transform_rect(cam, &paintrect, &destrect);
+                SDL_RenderCopy(renderer, atlas_texture, &srcrect, &destrect);
+            }
         }
     }
 }

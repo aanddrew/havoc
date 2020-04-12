@@ -32,6 +32,7 @@ Window* Window_init() {
     int win_flags = SDL_RENDERER_PRESENTVSYNC;
     //int win_flags = 0;
 	window->renderer = SDL_CreateRenderer(window->window, -1, win_flags);
+    SDL_SetRenderDrawBlendMode(window->renderer, SDL_BLENDMODE_BLEND);
 
     return window;
 }

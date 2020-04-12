@@ -11,7 +11,7 @@
 #include "../gui/TextBox.h"
 #include "../gui/Menu.h"
 
-#include "Map.h"
+#include "../game/Map.h"
 #include "MapRenderer.h"
 
 #ifdef WIN32
@@ -49,6 +49,7 @@ enum ITEMS {
     SAVE_BOX,
     TILE_BTN,
     SIZE_BOX,
+    DEPTH_BOX,
     NUM_ITEMS,
 };
 
@@ -56,8 +57,11 @@ static int IDS[NUM_ITEMS];
 #define MAX_NUM_TILES 64
 static int TILE_IDS[64];
 static int num_tiles = 0;
+#define MAX_LAYERS 8
+static int LAYER_IDS[MAX_LAYERS];
 
 static int brush_size = 1;
+static int brush_depth = 0;
 
 static FC_Font* font = NULL;
 static Window* window;
@@ -114,10 +118,16 @@ int main(int argc, char** argv)
                     if (e.key.keysym.sym == SDLK_RETURN) {
                         const TextBox* box = Menu_get_selected_textbox();
                         if (box) {
-                            int size;
-                            if (sscanf(box->buffer, "%d", &size)) {
-                                brush_size = size;
+                            int num;
+                            if (sscanf(box->buffer, "%d", &num)) {
+                                if (top_menu.selected_box == IDS[SIZE_BOX]) {
+                                    brush_size = num;
+                                }
+                                else if (top_menu.selected_box == IDS[DEPTH_BOX]) {
+                                    brush_depth = num;
+                                }
                             }
+                            Menu_deselect_textbox();
                         }
                     }
                 } 
@@ -189,6 +199,15 @@ int main(int argc, char** argv)
                     btn->is_hidden = !btn->is_hidden;
                 }
             }
+            for(int i = 0; i < map.depth; i++) {
+                if (top_menu.selected_button == LAYER_IDS[i]) {
+                    Menu_get_button(&top_menu, top_menu.selected_button)->is_active = 1;
+                    brush_depth = i;
+                }
+                else {
+                    Menu_get_button(&top_menu, LAYER_IDS[i])->is_active = 0;
+                }
+            }
             for(int i = 0; i < num_tiles; i++) {
                 if (top_menu.selected_button == TILE_IDS[i]) {
                     int atlas_w = MapRenderer_get_texture_width();
@@ -220,7 +239,7 @@ int main(int argc, char** argv)
                 int radius = brush_size - 1;
                 for(int brush_x = worldx - radius; brush_x <= worldx + radius; brush_x++) {
                     for(int brush_y = worldy -radius; brush_y <= worldy + radius; brush_y++) {
-                        Map_set_tile(&map, selected_tile, brush_x, brush_y);
+                        Map_set_tile(&map, selected_tile, brush_x, brush_y, brush_depth);
                     }
                 }
             }
@@ -229,6 +248,14 @@ int main(int argc, char** argv)
         //rendering
         Window_clear(window);
         Map_render(&map, window->renderer, &cam);
+        Button* tile_button = Menu_get_button(&top_menu, TILE_IDS[0]);
+        if (!tile_button->is_hidden) {
+            SDL_Rect rect = tile_button->rect;
+            rect.w = MapRenderer_get_texture_width();
+            rect.h = MapRenderer_get_texture_height();
+            SDL_SetRenderDrawColor(window->renderer, 200, 200, 200, 255);
+            SDL_RenderFillRect(window->renderer, &rect);
+        }
         Menu_render(&top_menu, window->renderer);
         Window_present(window);
     }
@@ -271,6 +298,7 @@ void init_top_menu() {
     tile_button.rect.y = 0;
     tile_button.rect.w = 64;
     tile_button.rect.h = 64;
+    tile_button.is_active = 1;
 
     //init tile selector/atlast buttons
     int atlas_w = MapRenderer_get_texture_width();
@@ -309,7 +337,29 @@ void init_top_menu() {
     size_box.x = 0;
     size_box.y = 96;
     size_box.box_width = 64;
+    
+    //cursor depth box
+    TextBox depth_box;
+    TextBox_init(&depth_box, "depth", font);
+    TextBox_append_char(&depth_box, '0');
+    depth_box.x = 0;
+    depth_box.y = 128;
+    depth_box.box_width = 64;
 
+    //layer selection boxes
+    char layer_title[1024];
+    int start_layer_x = -80;
+    int start_layer_y = 192;
+    for(int i = 0; i < MAX_LAYERS; i++) {
+        Button layer;
+        sprintf(layer_title, "layer %d", i);
+        Button_init_text(&layer, window->renderer, font_ttf, layer_title, white);
+        layer.rect.x = start_layer_x;
+        layer.rect.y = start_layer_y - i * 22;
+        LAYER_IDS[i] = Menu_add_button(&top_menu, layer);
+    }
+
+    IDS[DEPTH_BOX] = Menu_add_textbox(&top_menu, depth_box);
     IDS[SIZE_BOX] = Menu_add_textbox(&top_menu, size_box);
 
     IDS[SAVE_BTN] = Menu_add_button(&top_menu, save_button);

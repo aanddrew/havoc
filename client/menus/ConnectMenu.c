@@ -8,6 +8,8 @@ FC_Font* font = NULL;
 TTF_Font* ttf_font;
 SDL_Color font_color = { 255, 255, 255 };
 TextBox ip_box;
+TextBox name_box;
+SDL_Renderer* my_renderer;
 
 static const char* button_text[] = {
 	"back",
@@ -17,18 +19,26 @@ static const char* button_text[] = {
 static Button buttons[CONNECTMENU_NUM_BUTTONS];
 
 void ConnectMenu_init(SDL_Renderer* renderer) {
+    my_renderer = renderer;
 	font = FC_CreateFont();
     FC_LoadFont(font, renderer, "res/fonts/RobotoMono-Bold.ttf", 20, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
 
 	TextBox_init(&ip_box, "type ip", font);
-    ip_box.is_active = 1;
+    ip_box.is_active = 0;
     ip_box.box_width = 300;
+
+	TextBox_init(&name_box, "type name", font);
+    name_box.is_active = 0;
+    name_box.box_width = 300;
     SDL_StartTextInput();
 
 	int w, h;
 	SDL_GetRendererOutputSize(renderer, &w, &h);
 	ip_box.x = w / 2 - 150;
 	ip_box.y = h / 2 - 40;
+
+    name_box.x = ip_box.x;
+    name_box.y = ip_box.y - 80;
 
 	ttf_font = TTF_OpenFont("res/fonts/RobotoMono-Bold.ttf", 14);
 	for (int i = 0; i < CONNECTMENU_NUM_BUTTONS; i++) {
@@ -49,26 +59,47 @@ void ConnectMenu_deinit() {
 	font = NULL;
 }
 
+static TextBox* current_box;
+
 void ConnectMenu_event(SDL_Event e) {
 	switch (e.type) {
     case SDL_KEYDOWN: {
         switch(e.key.keysym.sym) {
             case SDLK_BACKSPACE:
-                TextBox_delete_end(&ip_box);
+            if (current_box)
+                TextBox_delete_end(current_box);
             break;
         }
     } break;
     case SDL_TEXTINPUT:
-        TextBox_append(&ip_box, e.text.text);
+        if (current_box)
+            TextBox_append(current_box, e.text.text);
         break;
-    case SDL_MOUSEBUTTONDOWN:
-
-        break;
+    case SDL_MOUSEBUTTONDOWN: {
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+        if (TextBox_is_mouse_inside(&ip_box, my_renderer, x, y)) {
+            name_box.is_active = 0;
+            ip_box.is_active = 1;
+            current_box = &ip_box;
+        }
+        else if (TextBox_is_mouse_inside(&name_box, my_renderer, x, y)) {
+            name_box.is_active = 1;
+            ip_box.is_active = 0;
+            current_box = &name_box;
+        }
+        else {
+            name_box.is_active = 0;
+            ip_box.is_active = 0;
+            current_box = NULL;
+        }
+    } break;
     }
 }
 
 void ConnectMenu_render(SDL_Renderer* renderer) {
 	TextBox_render_bg(&ip_box, renderer);
+    TextBox_render_bg(&name_box, renderer);
 
 	int mousex, mousey;
 	SDL_GetMouseState(&mousex, &mousey);
@@ -82,6 +113,13 @@ void ConnectMenu_getip(char* buf, int len) {
 	if (strlen(ip_box.buffer) >= len) return;
 	for (int i = 0; i < strlen(ip_box.buffer) + 1; i++) {
 		buf[i] = ip_box.buffer[i];
+	}
+}
+
+void ConnectMenu_getname(char* buf, int len) {
+	if (strlen(name_box.buffer) >= len) return;
+	for (int i = 0; i < strlen(name_box.buffer) + 1; i++) {
+		buf[i] = name_box.buffer[i];
 	}
 }
 
