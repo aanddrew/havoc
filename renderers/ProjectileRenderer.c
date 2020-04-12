@@ -1,7 +1,7 @@
 #include "ProjectileRenderer.h"
 
-#include "../../game/Projectile.h"
-#include "../Dolly.h"
+#include "../game/Projectile.h"
+#include "../gui/Dolly.h"
 
 Dolly projectile_sprites[NUM_PROJECTILE_KINDS];
 int projectile_sizes[NUM_PROJECTILE_KINDS] = {

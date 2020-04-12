@@ -1,6 +1,6 @@
 #include "PlayerRenderer.h"
 
-#include "../Fonts.h"
+#include "../gui/Fonts.h"
 
 static Dolly wizard;
 

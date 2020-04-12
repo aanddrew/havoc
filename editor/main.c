@@ -13,7 +13,7 @@
 #include "../gui/Fonts.h"
 
 #include "../game/Map.h"
-#include "MapRenderer.h"
+#include "../renderers/MapRenderer.h"
 
 #ifdef WIN32
     #define strdup _strdup

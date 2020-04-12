@@ -8,8 +8,9 @@
 #include "../gui/Dolly.h"
 #include "../gui/Camera.h"
 #include "../gui/Fonts.h"
-#include "../gui/GameRenderer.h"
-#include "../editor/MapRenderer.h"
+#include "../renderers/MapRenderer.h"
+
+#include "../renderers/GameRenderer.h"
 
 #include "../game/Player.h"
 #include "../game/Projectile.h"

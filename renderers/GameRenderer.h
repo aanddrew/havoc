@@ -1,5 +1,5 @@
-#include "renderers/ProjectileRenderer.h"
-#include "renderers/PlayerRenderer.h"
+#include "ProjectileRenderer.h"
+#include "PlayerRenderer.h"
 
 int GameRenderer_init(SDL_Renderer* renderer);
 int GameRenderer_deinit();

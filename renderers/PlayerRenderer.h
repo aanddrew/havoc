@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "../../game/Player.h"
+#include "../game/Player.h"
 
 void Player_init_all_sprites(SDL_Renderer* renderer);
 void Player_cleanup_all_sprites();
