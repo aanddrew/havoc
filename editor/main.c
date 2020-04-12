@@ -10,6 +10,7 @@
 #include "../gui/Button.h"
 #include "../gui/TextBox.h"
 #include "../gui/Menu.h"
+#include "../gui/Fonts.h"
 
 #include "../game/Map.h"
 #include "MapRenderer.h"
@@ -63,16 +64,21 @@ static int LAYER_IDS[MAX_LAYERS];
 static int brush_size = 1;
 static int brush_depth = 0;
 
-static FC_Font* font = NULL;
-static Window* window;
-
 static Menu top_menu;
-
 void init_top_menu();
+
+static Window* window;
 
 int main(int argc, char** argv)
 {
+    if (argc != 1) {
+        printf("Error, not expecting command line arguments\n");
+        for(int i = 1; i < argc; i++) {
+            printf("%s\n", argv[i]);
+        }
+    }
     window = Window_init();
+    Fonts_init(window->renderer);
 
     Camera cam;
     Camera_init(&cam, window->renderer);
@@ -81,13 +87,6 @@ int main(int argc, char** argv)
 
     Map map;
     Map_init(&map, NULL);
-
-    font = FC_CreateFont();
-    FC_LoadFont(font, window->renderer, "../res/fonts/RobotoMono-Bold.ttf", 16, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
-
-    if (!font) {
-        printf("Error loading font: %s\n", SDL_GetError());
-    }
 
     init_top_menu();
     
@@ -211,7 +210,6 @@ int main(int argc, char** argv)
             for(int i = 0; i < num_tiles; i++) {
                 if (top_menu.selected_button == TILE_IDS[i]) {
                     int atlas_w = MapRenderer_get_texture_width();
-                    int atlas_h = MapRenderer_get_texture_height();
 
                     Button* tile_btn = Menu_get_button(&top_menu, IDS[TILE_BTN]);
                     tile_btn->srcrect.x = i % (atlas_w / 64) * 64;
@@ -269,23 +267,17 @@ void init_top_menu() {
 
     //save text box
     TextBox save_box;
-    TextBox_init(&save_box, "output file name", font);
+    TextBox_init(&save_box, "output file name", 16);
     save_box.x = 25;
     save_box.y = -30;
     save_box.box_width = 200;
-
-    TTF_Font* font_ttf = TTF_OpenFont("../res/fonts/RobotoMono-Bold.ttf", 16);
-    if (!font_ttf) {
-        printf("Unable to load font: %s\n", SDL_GetError());
-    }
-    SDL_Color white = {255, 255, 255 ,255};
 
     //save and load buttons
     Button save_button;
     Button load_button;
 
-    Button_init_text(&save_button, window->renderer, font_ttf, "save", white);
-    Button_init_text(&load_button, window->renderer, font_ttf, "load", white);
+    Button_init_text(&save_button, "save", 16);
+    Button_init_text(&load_button, "load", 16);
     save_button.rect.x = 25;
     save_button.rect.y = -60;
     load_button.rect.x = 90;
@@ -332,7 +324,7 @@ void init_top_menu() {
 
     //now do the cursor size box
     TextBox size_box;
-    TextBox_init(&size_box, "cursor", font);
+    TextBox_init(&size_box, "cursor", 16);
     TextBox_append_char(&size_box, '1');
     size_box.x = 0;
     size_box.y = 96;
@@ -340,7 +332,7 @@ void init_top_menu() {
     
     //cursor depth box
     TextBox depth_box;
-    TextBox_init(&depth_box, "depth", font);
+    TextBox_init(&depth_box, "depth", 16);
     TextBox_append_char(&depth_box, '0');
     depth_box.x = 0;
     depth_box.y = 128;
@@ -353,7 +345,7 @@ void init_top_menu() {
     for(int i = 0; i < MAX_LAYERS; i++) {
         Button layer;
         sprintf(layer_title, "layer %d", i);
-        Button_init_text(&layer, window->renderer, font_ttf, layer_title, white);
+        Button_init_text(&layer, layer_title, 16);
         layer.rect.x = start_layer_x;
         layer.rect.y = start_layer_y - i * 22;
         LAYER_IDS[i] = Menu_add_button(&top_menu, layer);

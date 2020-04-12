@@ -48,14 +48,16 @@ void Controller_keyup(Controller* self, int key) {
 }
 
 void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e) {
-    //Projectile* proj = Proj_launch(0, self->player->pos, self->player->look);
-    Projectile proj;
-    proj.kind = 0;
-    proj.pos = self->player->pos;
-    proj.dir = self->player->look;
+    if (e.button == SDL_BUTTON_LEFT) {
+        //Projectile* proj = Proj_launch(0, self->player->pos, self->player->look);
+        Projectile proj;
+        proj.kind = 0;
+        proj.pos = self->player->pos;
+        proj.dir = self->player->look;
 
-    UDPpacket* proj_pack = Network_create_projectile_packet(&proj);
-    Network_send_packet(proj_pack);
+        UDPpacket* proj_pack = Network_create_projectile_packet(&proj);
+        Network_send_packet(proj_pack);
+    }
 }
 
 void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {
@@ -63,7 +65,7 @@ void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e) {
     Camera_zoom(self->cam, ((float) scrolled) /15.0f + 1.0f);
 }
 
-void Controller_update(Controller* self, float dt, const Camera* cam) {
+void Controller_update(Controller* self, const Camera* cam) {
     //update the look vector based on mouse position
     int mousex, mousey;
     Camera_get_mousestate_relative(cam, &mousex, &mousey);

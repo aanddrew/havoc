@@ -12,7 +12,7 @@ typedef struct {
 	int num_chars;
 
 	const char* placeholder;
-	FC_Font* font;
+    int font_size;
 
 	int x;
 	int y;
@@ -22,7 +22,7 @@ typedef struct {
     int is_hidden;
 } TextBox;
 
-void TextBox_init(TextBox* self, const char* placeholder, FC_Font* font);
+void TextBox_init(TextBox* self, const char* placeholder, int font_size);
 void TextBox_deinit(TextBox* self);
 
 void TextBox_insert(TextBox* self, const char* text, int start);

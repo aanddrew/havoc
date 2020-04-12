@@ -63,7 +63,7 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam)
 
 void Dolly_setPos(Dolly* self, int x, int y) {
     self->rect.x = x;
-    self->rect.y = x;
+    self->rect.y = y;
 }
 void Dolly_translate(Dolly* self, int dx, int dy) {
     self->rect.x += dx;

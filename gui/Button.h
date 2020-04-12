@@ -4,9 +4,24 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+enum BUTTON_TYPE {
+    TEXT,
+    TEXTURE,
+};
+
 typedef struct {
 	SDL_Rect rect;
-	SDL_Texture* texture;
+    int type;
+
+    union {
+        struct {
+            char* text;
+            int font_size;
+        };
+        SDL_Texture* texture;
+    };
+
+    SDL_Color color;
 
     SDL_Rect srcrect;
 
@@ -17,7 +32,7 @@ typedef struct {
 
 void Button_init(Button* self);
 void Button_deinit(Button* self);
-void Button_init_text(Button* self, SDL_Renderer* renderer, TTF_Font* font, const char* msg, SDL_Color color);
+void Button_init_text(Button* self, const char* msg, int font_size);
 void Button_init_icon(Button* self, SDL_Renderer* renderer, const char* img_file);
 void Button_init_texture(Button* self, SDL_Texture* texture);
 

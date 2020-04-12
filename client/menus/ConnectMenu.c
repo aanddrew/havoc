@@ -4,9 +4,6 @@
 
 #include "../../SDL_FontCache/SDL_FontCache.h"
 
-FC_Font* font = NULL;
-TTF_Font* ttf_font;
-SDL_Color font_color = { 255, 255, 255 };
 TextBox ip_box;
 TextBox name_box;
 SDL_Renderer* my_renderer;
@@ -20,14 +17,12 @@ static Button buttons[CONNECTMENU_NUM_BUTTONS];
 
 void ConnectMenu_init(SDL_Renderer* renderer) {
     my_renderer = renderer;
-	font = FC_CreateFont();
-    FC_LoadFont(font, renderer, "res/fonts/RobotoMono-Bold.ttf", 20, FC_MakeColor(255, 255, 255, 255), TTF_STYLE_NORMAL);
 
-	TextBox_init(&ip_box, "type ip", font);
+	TextBox_init(&ip_box, "type ip", 20);
     ip_box.is_active = 0;
     ip_box.box_width = 300;
 
-	TextBox_init(&name_box, "type name", font);
+	TextBox_init(&name_box, "type name", 20);
     name_box.is_active = 0;
     name_box.box_width = 300;
     SDL_StartTextInput();
@@ -40,9 +35,8 @@ void ConnectMenu_init(SDL_Renderer* renderer) {
     name_box.x = ip_box.x;
     name_box.y = ip_box.y - 80;
 
-	ttf_font = TTF_OpenFont("res/fonts/RobotoMono-Bold.ttf", 14);
 	for (int i = 0; i < CONNECTMENU_NUM_BUTTONS; i++) {
-		Button_init_text(&buttons[i], renderer, ttf_font, button_text[i], font_color);
+		Button_init_text(&buttons[i], button_text[i], 16);
 		buttons[i].rect.x = (w / 2) - 90+ 90 * i;
 		buttons[i].rect.y = h / 2 + 50;
 	}
@@ -54,9 +48,6 @@ void ConnectMenu_deinit() {
 	}
 	TextBox_deinit(&ip_box);
     SDL_StopTextInput();
-
-	FC_FreeFont(font);
-	font = NULL;
 }
 
 static TextBox* current_box;
@@ -110,15 +101,15 @@ void ConnectMenu_render(SDL_Renderer* renderer) {
 }
 
 void ConnectMenu_getip(char* buf, int len) {
-	if (strlen(ip_box.buffer) >= len) return;
-	for (int i = 0; i < strlen(ip_box.buffer) + 1; i++) {
+	if ((int) strlen(ip_box.buffer) >= len) return;
+	for (int i = 0; i < (int) strlen(ip_box.buffer) + 1; i++) {
 		buf[i] = ip_box.buffer[i];
 	}
 }
 
 void ConnectMenu_getname(char* buf, int len) {
-	if (strlen(name_box.buffer) >= len) return;
-	for (int i = 0; i < strlen(name_box.buffer) + 1; i++) {
+	if ((int) strlen(name_box.buffer) >= len) return;
+	for (int i = 0; i < (int) strlen(name_box.buffer) + 1; i++) {
 		buf[i] = name_box.buffer[i];
 	}
 }

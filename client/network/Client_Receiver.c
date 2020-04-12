@@ -41,7 +41,6 @@ static int running = 1;
 static int thread_fun(void* arg) {
     pool_t* pool = (pool_t*) arg;
 
-    char buffer[PACKET_SIZE];
     UDPpacket* pack = SDLNet_AllocPacket(PACKET_SIZE);
     while(running) {
         //get a packet from the server

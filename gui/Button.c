@@ -4,6 +4,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 
+#include "Fonts.h"
+
 void Button_init(Button* self) {
 	self->rect.x = 0;
 	self->rect.y = 0;
@@ -15,33 +17,34 @@ void Button_init(Button* self) {
 }
 
 void Button_deinit(Button* self) {
-	if (self->texture) {
-		SDL_DestroyTexture(self->texture);
-	}
+    switch (self->type) {
+        case TEXTURE:
+            if (self->texture) {
+                SDL_DestroyTexture(self->texture);
+            }
+        break;
+        case TEXT:
+            if (self->text) {
+                free(self->text);
+            }
+        break;
+    }
 }
 
-void Button_init_text(Button* self, SDL_Renderer* renderer, 
-	TTF_Font* font, const char* msg, SDL_Color color) {
 
+void Button_init_text(Button* self, const char* msg, int font_size) {
     Button_init(self);
-	SDL_Surface* surface = TTF_RenderText_Solid(font, msg, color);
-    if (!surface) {
-        printf("Error in Button_init_text: %s\n", SDL_GetError());
-    }
-	self->texture = SDL_CreateTextureFromSurface(renderer, surface);
-	if (!self->texture) {
-		printf("Error: %s\n", SDL_GetError());
-	}
-	SDL_FreeSurface(surface);
-	int w, h;
-	TTF_SizeText(font, msg, &w, &h);
-	self->rect.w = w;
-	self->rect.h = h;
+
+    self->type = TEXT;
+    self->text = strdup(msg);
+    self->font_size = font_size;
+
+    FC_Font* font = Fonts_getfont(self->font_size);
+	self->rect.w = FC_GetWidth(font, self->text);
+	self->rect.h = FC_GetLineHeight(font);
 
     self->srcrect.x = 0;
     self->srcrect.y = 0;
-    self->srcrect.w = w;
-    self->srcrect.h = h;
 
     self->is_active = 0;
     self->is_hidden = 0;
@@ -62,6 +65,7 @@ void Button_init_icon(Button* self, SDL_Renderer* renderer, const char* img_file
 
 void Button_init_texture(Button* self, SDL_Texture* tex) {
     Button_init(self);
+    self->type = TEXTURE;
     self->texture = tex;
     self->rect.w = 64;
     self->rect.h = 64;
@@ -86,7 +90,18 @@ void Button_render(Button* self, SDL_Renderer* renderer) {
     temp_rect.w = self->rect.w;
     temp_rect.h = self->rect.h;
 
-	SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
+    switch(self->type) {
+    case TEXTURE: {
+        SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
+    } break;
+    case TEXT:
+        FC_Draw(Fonts_getfont(self->font_size),
+                renderer,
+                temp_rect.x,
+                temp_rect.y,
+                self->text);
+        break;
+    }
 
     if (self->is_hovered) {
         SDL_SetRenderDrawColor(renderer, 0,0,0, 50);

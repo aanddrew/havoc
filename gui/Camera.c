@@ -90,5 +90,5 @@ void Camera_transform_rect(const Camera* self, const SDL_Rect* input, SDL_Rect* 
 }
 
 void Camera_print(const Camera* self) {
-    printf("%f, %f, %f, %f, %f, %f\n", self->x, self->y, self->w, self->h, self->aspect_ratio);
+    printf("%f, %f, %f, %f, %f\n", self->x, self->y, self->w, self->h, self->aspect_ratio);
 }

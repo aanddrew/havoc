@@ -44,6 +44,6 @@ void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e);
 void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e);
 
 //does not actually update the player, just changes the look vector and velocity
-void Controller_update(Controller* self, float dt, const Camera* cam);
+void Controller_update(Controller* self, const Camera* cam);
 
 #endif

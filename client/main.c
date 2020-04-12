@@ -48,6 +48,12 @@ int Game_Loop(Window* window);
 
 int main(int argc, char** argv)
 {
+    if (argc != 1) {
+        printf("Error, not supposed to take arguments\n");
+        for(int i = 1; i < argc; i++) {
+            printf("%s\n", argv[i]);
+        }
+    }
     Window* window = Window_init();
     Fonts_init(window->renderer);
     int current_state = MAIN_MENU;
@@ -277,14 +283,14 @@ int Game_Loop(Window* window) {
                 Uint32 message_type = SDLNet_Read32(pack->data + 4);
 
                 //add new player to the game
-                if (id != -1 && !Player_get(id)) {
+                if (id != (Uint32) -1 && !Player_get(id)) {
                     Player_connect_with_id("new player", id);
                 }
                 
                 //all other events
                 switch (message_type) {
                 case PLAYER_UPDATE:
-                    if (id != our_id)
+                    if (id != (Uint32) our_id)
                         Network_decipher_player_packet(pack, Player_get(id));
                     break;
                 case PROJECTILE_LAUNCH:
@@ -306,7 +312,7 @@ int Game_Loop(Window* window) {
         /* Update own copy of the game*/
 
         float dt_float = ((float)dt) / 1000.0f;
-        Controller_update(&c, dt_float, &cam);
+        Controller_update(&c, &cam);
         Game_update(dt_float);
         
         Map_collide_player(&map, our_player);
