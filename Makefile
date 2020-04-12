@@ -22,6 +22,9 @@ server:
 editor:
 	$(CC) $(CFLAGS) $(LFLAGS) $(EDITOR_SRC) -o $(EDITOR_OUT)
 
+style:
+	clang-format -i -style=WebKit $(shell find . -name *.c -o -name *.h -type f)
+
 clean:
 	rm $(CLIENT_OUT) $(SERVER_OUT) $(EDITOR_OUT)
 

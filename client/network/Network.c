@@ -7,27 +7,30 @@
 
 #include "../../game/Player.h"
 
-#include <stdio.h>
 #include <SDL2/SDL.h>
+#include <stdio.h>
 
 static Uint32 our_id = -1;
 static int online = 0;
 
-void Network_init() {
+void Network_init()
+{
     SDLNet_Init();
     Pool_init();
     Client_Receiver_init();
     Client_Sender_init();
 }
 
-void Network_deinit() {
+void Network_deinit()
+{
     Pool_deinit();
     Client_Receiver_deinit();
     Client_Sender_deinit();
     SDLNet_Quit();
 }
 
-int Network_connect(const char* hostname) {
+int Network_connect(const char* hostname)
+{
     printf("Requesting to connect to server: %s\n", hostname);
 
     IPaddress addr;
@@ -53,14 +56,13 @@ int Network_connect(const char* hostname) {
 
     int num_tries = 0;
     const int max_tries = 20;
-    while(num_tries < max_tries) {
+    while (num_tries < max_tries) {
         int num = SDLNet_UDP_Recv(sock, pack);
         if (num) {
             our_id = SDLNet_Read32(pack->data);
             printf("Server gives us id: %d\n", our_id);
             break;
-        }
-        else {
+        } else {
             //printf("No response\n");
         }
         SDL_Delay(100);
@@ -70,7 +72,7 @@ int Network_connect(const char* hostname) {
         return 0;
     }
     SDLNet_FreePacket(pack);
-    
+
     shared_pool.server = sock;
     Client_Receiver_run();
     Client_Sender_run();
@@ -79,9 +81,10 @@ int Network_connect(const char* hostname) {
     return 1;
 }
 
-void Network_disconnect() {
+void Network_disconnect()
+{
     SDL_LockMutex(shared_pool.running_mutex);
-        shared_pool.running = 0;
+    shared_pool.running = 0;
     SDL_UnlockMutex(shared_pool.running_mutex);
 
     Client_Sender_stop();
@@ -98,19 +101,22 @@ void Network_disconnect() {
     online = 0;
 }
 
-void Network_send_packet(UDPpacket* packet) {
-    if (!online) return;
+void Network_send_packet(UDPpacket* packet)
+{
+    if (!online)
+        return;
 
     SDL_LockMutex(shared_pool.sending_mutex);
-        Vector_push(shared_pool.sending, packet);
+    Vector_push(shared_pool.sending, packet);
     SDL_UnlockMutex(shared_pool.sending_mutex);
 }
 
-
-Uint32 Network_get_our_id() {
+Uint32 Network_get_our_id()
+{
     return our_id;
 }
 
-int Network_online() {
+int Network_online()
+{
     return online;
 }

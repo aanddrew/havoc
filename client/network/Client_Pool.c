@@ -4,10 +4,11 @@
 
 pool_t shared_pool;
 
-Packet* Packet_create(Uint8* data, int len, int sender_id) {
+Packet* Packet_create(Uint8* data, int len, int sender_id)
+{
     Packet* pack = malloc(sizeof(Packet));
     pack->data = malloc(len);
-    for(int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         pack->data[i] = data[i];
     }
     pack->len = len;
@@ -15,12 +16,14 @@ Packet* Packet_create(Uint8* data, int len, int sender_id) {
     return pack;
 }
 
-void Packet_destroy(Packet* pack) {
+void Packet_destroy(Packet* pack)
+{
     free(pack->data);
     free(pack);
 }
 
-void Pool_init() {
+void Pool_init()
+{
     shared_pool.received = malloc(sizeof(Vector));
     shared_pool.received_swap = malloc(sizeof(Vector));
     shared_pool.sending = malloc(sizeof(Vector));
@@ -36,7 +39,8 @@ void Pool_init() {
     shared_pool.running_mutex = SDL_CreateMutex();
 }
 
-void Pool_deinit() {
+void Pool_deinit()
+{
     Vector_delete(shared_pool.received);
     Vector_delete(shared_pool.received_swap);
     Vector_delete(shared_pool.sending);

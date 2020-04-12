@@ -4,32 +4,32 @@
 
 #include "../SDL_FontCache/SDL_FontCache.h"
 
-#include "../gui/Window.h"
-#include "../gui/Dolly.h"
 #include "../gui/Camera.h"
+#include "../gui/Dolly.h"
 #include "../gui/Fonts.h"
+#include "../gui/Window.h"
 #include "../renderers/MapRenderer.h"
 
 #include "../renderers/GameRenderer.h"
 
-#include "../game/Player.h"
-#include "../game/Projectile.h"
 #include "../game/Game.h"
 #include "../game/Map.h"
+#include "../game/Player.h"
+#include "../game/Projectile.h"
 #include "Controller.h"
 
 #include "network/Client_Pool.h"
-#include "network/Client_Sender.h"
 #include "network/Client_Receiver.h"
+#include "network/Client_Sender.h"
 #include "network/Network.h"
 
 #include "../utils/Network_utils.h"
 
-#include "menus/MainMenu.h"
 #include "menus/ConnectMenu.h"
+#include "menus/MainMenu.h"
 
 #ifdef WIN32
-    #define strdup _strdup
+#define strdup _strdup
 #endif
 
 char server_hostname[512];
@@ -38,7 +38,7 @@ char wish_name[64];
 enum MENU_RET {
     EXIT_PROGRAM,
     MAIN_MENU,
-    CONNECT, 
+    CONNECT,
     GAME,
     OPTIONS,
 };
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 {
     if (argc != 1) {
         printf("Error, not supposed to take arguments\n");
-        for(int i = 1; i < argc; i++) {
+        for (int i = 1; i < argc; i++) {
             printf("%s\n", argv[i]);
         }
     }
@@ -80,24 +80,24 @@ int main(int argc, char** argv)
     Window_delete(window);
 }
 
-int ConnectMenu_Loop(Window* window) {
+int ConnectMenu_Loop(Window* window)
+{
     ConnectMenu_init(window->renderer);
 
-	SDL_Event e;
-	int done = 0;
-	int ret = EXIT_PROGRAM;
-	while (!done) {
-		while (SDL_PollEvent(&e)) {
-			switch (e.type)
-			{
-			case SDL_QUIT:
-				done = 1;
-				ret = EXIT_PROGRAM;
-				break;
+    SDL_Event e;
+    int done = 0;
+    int ret = EXIT_PROGRAM;
+    while (!done) {
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+            case SDL_QUIT:
+                done = 1;
+                ret = EXIT_PROGRAM;
+                break;
             case SDL_KEYDOWN:
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
                     done = 1;
-					ret = MAIN_MENU;
+                    ret = MAIN_MENU;
                 }
                 if (e.key.keysym.sym == SDLK_RETURN) {
                     ConnectMenu_getip(server_hostname, 512);
@@ -122,62 +122,72 @@ int ConnectMenu_Loop(Window* window) {
                     break;
                 }
             } break;
-			}
+            }
             ConnectMenu_event(e);
-		}
-		Window_clear(window);
-		ConnectMenu_render(window->renderer);
-		Window_present(window);
-	}
+        }
+        Window_clear(window);
+        ConnectMenu_render(window->renderer);
+        Window_present(window);
+    }
 
-	ConnectMenu_deinit();
-	return ret;
+    ConnectMenu_deinit();
+    return ret;
 }
 
-int MainMenu_Loop(Window* window) {
-	/* Initialize Main Menu */
-	MainMenu_init(window->renderer);
-	SDL_Event e;
-	int done = 0;
+int MainMenu_Loop(Window* window)
+{
+    /* Initialize Main Menu */
+    MainMenu_init(window->renderer);
+    SDL_Event e;
+    int done = 0;
     int ret = EXIT_PROGRAM;
-	while (!done) {
-		while(SDL_PollEvent(&e)) {
-            switch (e.type)
-            {
-				case SDL_MOUSEBUTTONDOWN: {
-					int mousex, mousey;
-					SDL_GetMouseState(&mousex, &mousey);
-					int button = MainMenu_pressed_button(window->renderer, mousex, mousey);
-					if (button >= 0) {
-						switch (button) {
-                        case QUIT_BUTTON:    done = 1; ret = EXIT_PROGRAM; break;
-                        case CONNECT_BUTTON: done = 1; ret = CONNECT; break;
-                        case OPTIONS_BUTTON: done = 1; ret = OPTIONS; break;
-						}
-					}
-				} break;
-				case SDL_WINDOWEVENT:
-					switch (e.window.event) {
-					case SDL_WINDOWEVENT_RESIZED: {
+    while (!done) {
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+            case SDL_MOUSEBUTTONDOWN: {
+                int mousex, mousey;
+                SDL_GetMouseState(&mousex, &mousey);
+                int button = MainMenu_pressed_button(window->renderer, mousex, mousey);
+                if (button >= 0) {
+                    switch (button) {
+                    case QUIT_BUTTON:
+                        done = 1;
+                        ret = EXIT_PROGRAM;
+                        break;
+                    case CONNECT_BUTTON:
+                        done = 1;
+                        ret = CONNECT;
+                        break;
+                    case OPTIONS_BUTTON:
+                        done = 1;
+                        ret = OPTIONS;
+                        break;
+                    }
+                }
+            } break;
+            case SDL_WINDOWEVENT:
+                switch (e.window.event) {
+                case SDL_WINDOWEVENT_RESIZED: {
 
-					} break;
-				} break;
-				case SDL_QUIT:
-					done = 1;
-                    ret = EXIT_PROGRAM;
-				break;
-			}
-		}
-		Window_clear(window);
-		MainMenu_Render(window->renderer);
-		Window_present(window);
-
-	}
+                } break;
+                }
+                break;
+            case SDL_QUIT:
+                done = 1;
+                ret = EXIT_PROGRAM;
+                break;
+            }
+        }
+        Window_clear(window);
+        MainMenu_Render(window->renderer);
+        Window_present(window);
+    }
     MainMenu_deinit();
-	return ret;
+    return ret;
 }
 
-int Game_Loop(Window* window) {
+int Game_Loop(Window* window)
+{
     /* Initialize Network */
     int online = 0;
     Network_init();
@@ -216,15 +226,12 @@ int Game_Loop(Window* window) {
     int dt = 0;
     SDL_Event e;
     int done = 0;
-    while (!done)
-    {
+    while (!done) {
         dt = SDL_GetTicks() - current_time;
         current_time = SDL_GetTicks();
 
-        while (SDL_PollEvent(&e))
-        {
-            switch (e.type)
-            {
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
             case SDL_KEYDOWN:
                 Controller_keydown(&c, e.key.keysym.sym);
                 break;
@@ -265,7 +272,7 @@ int Game_Loop(Window* window) {
                 UDPpacket* namepack = Network_create_change_name_packet(wish_name);
                 Network_send_packet(namepack);
             }
-            
+
             if (current_time - last_name_request_time >= 1000) {
                 //printf("REQUESTING NAMES\n");
                 UDPpacket* namerequestpack = Network_create_get_names_packet();
@@ -284,14 +291,14 @@ int Game_Loop(Window* window) {
                 Uint32 message_type = SDLNet_Read32(pack->data + 4);
 
                 //add new player to the game
-                if (id != (Uint32) -1 && !Player_get(id)) {
+                if (id != (Uint32)-1 && !Player_get(id)) {
                     Player_connect_with_id("new player", id);
                 }
-                
+
                 //all other events
                 switch (message_type) {
                 case PLAYER_UPDATE:
-                    if (id != (Uint32) our_id)
+                    if (id != (Uint32)our_id)
                         Network_decipher_player_packet(pack, Player_get(id));
                     break;
                 case PROJECTILE_LAUNCH:
@@ -315,7 +322,7 @@ int Game_Loop(Window* window) {
         float dt_float = ((float)dt) / 1000.0f;
         Controller_update(&c, &cam);
         Game_update(dt_float);
-        
+
         Map_collide_player(&map, our_player);
 
         Window_clear(window);
@@ -327,7 +334,7 @@ int Game_Loop(Window* window) {
     //
     // Cleanup down here
     //
-    
+
     Proj_cleanup_all_sprites();
 
     if (online) {

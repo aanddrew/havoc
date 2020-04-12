@@ -2,11 +2,11 @@
 #define GLOBAL_H
 
 #ifdef _WIN32
-    #define strdup _strdup
+#define strdup _strdup
 #endif
 
 #ifndef M_PI
-    #define M_PI 3.14159265f
+#define M_PI 3.14159265f
 #endif
 
 #endif

@@ -9,11 +9,12 @@ static SDL_Color cursor_color;
 
 int init_counts = 0;
 
-void TextBox_init(TextBox* self, const char* placeholder, int font_size) {
-	self->placeholder = placeholder;
-	self->num_chars = 0;
-	self->x = 0;
-	self->y = 0;
+void TextBox_init(TextBox* self, const char* placeholder, int font_size)
+{
+    self->placeholder = placeholder;
+    self->num_chars = 0;
+    self->x = 0;
+    self->y = 0;
     self->font_size = font_size;
 
     self->is_active = 0;
@@ -26,71 +27,82 @@ void TextBox_init(TextBox* self, const char* placeholder, int font_size) {
         cursor_color.a = 255;
         last_blink_time = SDL_GetTicks();
     }
-    for(int i = 0; i < TEXTBOX_BUFFER_SIZE; i++) {
+    for (int i = 0; i < TEXTBOX_BUFFER_SIZE; i++) {
         self->buffer[i] = '\0';
     }
     self->is_hidden = 0;
     init_counts++;
 }
-void TextBox_deinit(TextBox* self) {
+void TextBox_deinit(TextBox* self)
+{
     if (!self) {
         printf("Deinitting null TextBox\n");
     }
 }
 
-void TextBox_insert(TextBox* self, const char* text, int start) {
-	if (start + strlen(text) > TEXTBOX_BUFFER_SIZE) {
-		printf("Error: inserting too many characters into text box\n");
-		return;
-	}
-	for (int i = 0; i < (int) strlen(text); i++) {
-		self->buffer[i + start] = text[i];
-	}
-	self->num_chars += strlen(text);
+void TextBox_insert(TextBox* self, const char* text, int start)
+{
+    if (start + strlen(text) > TEXTBOX_BUFFER_SIZE) {
+        printf("Error: inserting too many characters into text box\n");
+        return;
+    }
+    for (int i = 0; i < (int)strlen(text); i++) {
+        self->buffer[i + start] = text[i];
+    }
+    self->num_chars += strlen(text);
 }
 
-void TextBox_append(TextBox* self, const char* text) {
-	if (self->num_chars + strlen(text) >= TEXTBOX_BUFFER_SIZE) {
-		return;
-	}
-	for (int i = 0; i < (int) strlen(text); i++) {
-		self->buffer[i + self->num_chars] = text[i];
-	}
-	self->num_chars += strlen(text);
+void TextBox_append(TextBox* self, const char* text)
+{
+    if (self->num_chars + strlen(text) >= TEXTBOX_BUFFER_SIZE) {
+        return;
+    }
+    for (int i = 0; i < (int)strlen(text); i++) {
+        self->buffer[i + self->num_chars] = text[i];
+    }
+    self->num_chars += strlen(text);
 }
 
-void TextBox_set(TextBox* self, char c, int index) {
-	if (index < 0 || index >= TEXTBOX_BUFFER_SIZE) return;
+void TextBox_set(TextBox* self, char c, int index)
+{
+    if (index < 0 || index >= TEXTBOX_BUFFER_SIZE)
+        return;
 
-	self->buffer[index] = c;
+    self->buffer[index] = c;
 }
 
-void TextBox_append_char(TextBox* self, char c) {
-	if (self->num_chars == TEXTBOX_BUFFER_SIZE - 1) {
-		return;
-	}
-	self->buffer[self->num_chars] = c;
-	self->num_chars++;
-	self->buffer[self->num_chars] = '\0';
+void TextBox_append_char(TextBox* self, char c)
+{
+    if (self->num_chars == TEXTBOX_BUFFER_SIZE - 1) {
+        return;
+    }
+    self->buffer[self->num_chars] = c;
+    self->num_chars++;
+    self->buffer[self->num_chars] = '\0';
 }
 
-void TextBox_delete_end(TextBox* self) {
-	if (self->num_chars == 0) return;
-	self->buffer[self->num_chars - 1] = '\0';
-	self->num_chars--;
+void TextBox_delete_end(TextBox* self)
+{
+    if (self->num_chars == 0)
+        return;
+    self->buffer[self->num_chars - 1] = '\0';
+    self->num_chars--;
 }
 
-const char* TextBox_gettext(TextBox* self) {
-	if (self->num_chars > 0) {
-		return self->buffer;
-	}
-	return self->placeholder;
+const char* TextBox_gettext(TextBox* self)
+{
+    if (self->num_chars > 0) {
+        return self->buffer;
+    }
+    return self->placeholder;
 }
 
-void TextBox_render(TextBox* self, SDL_Renderer* renderer) {
-    if (self->is_hidden) return;
+void TextBox_render(TextBox* self, SDL_Renderer* renderer)
+{
+    if (self->is_hidden)
+        return;
     //check if we should flip the cursor
-    if (SDL_GetTicks() > (unsigned int) last_blink_time + BLINK_INTERVAL) {
+    if (SDL_GetTicks() > (unsigned int)last_blink_time + BLINK_INTERVAL) {
         is_blinking = !is_blinking;
         last_blink_time = SDL_GetTicks();
     }
@@ -110,19 +122,19 @@ void TextBox_render(TextBox* self, SDL_Renderer* renderer) {
     }
 
     //actually draw the text
-	SDL_Color old_color = FC_GetDefaultColor(font);
-	if (self->num_chars == 0) {
-		FC_SetDefaultColor(font, FC_MakeColor(75, 75, 75, 255));
+    SDL_Color old_color = FC_GetDefaultColor(font);
+    if (self->num_chars == 0) {
+        FC_SetDefaultColor(font, FC_MakeColor(75, 75, 75, 255));
     }
 
     int self_x, self_y;
     TextBox_get_screen_coords(self, renderer, &self_x, &self_y);
-	FC_Draw(font, 
-            renderer, 
-            self_x,
-            self_y,
-            TextBox_gettext(self));
-	FC_SetDefaultColor(font, old_color);
+    FC_Draw(font,
+        renderer,
+        self_x,
+        self_y,
+        TextBox_gettext(self));
+    FC_SetDefaultColor(font, old_color);
 
     //put the temp char back in
     if (!self->is_active && self->box_width != 0) {
@@ -138,17 +150,19 @@ void TextBox_render(TextBox* self, SDL_Renderer* renderer) {
         cursor_rect.y = self_y + 1;
         cursor_rect.h = font_height - 2;
 
-        SDL_SetRenderDrawColor(renderer, 
-                cursor_color.r, 
-                cursor_color.g, 
-                cursor_color.b, 
-                cursor_color.a);
+        SDL_SetRenderDrawColor(renderer,
+            cursor_color.r,
+            cursor_color.g,
+            cursor_color.b,
+            cursor_color.a);
         SDL_RenderFillRect(renderer, &cursor_rect);
     }
 }
 
-void TextBox_render_bg(TextBox* self, SDL_Renderer* renderer) {
-    if (self->is_hidden) return;
+void TextBox_render_bg(TextBox* self, SDL_Renderer* renderer)
+{
+    if (self->is_hidden)
+        return;
     SDL_Color black;
     black.r = 0;
     black.g = 0;
@@ -157,8 +171,10 @@ void TextBox_render_bg(TextBox* self, SDL_Renderer* renderer) {
     TextBox_render_bg_color(self, renderer, black);
 }
 
-void TextBox_render_bg_color(TextBox* self, SDL_Renderer* renderer, SDL_Color color) {
-    if (self->is_hidden) return;
+void TextBox_render_bg_color(TextBox* self, SDL_Renderer* renderer, SDL_Color color)
+{
+    if (self->is_hidden)
+        return;
     int screen_w, screen_h;
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
 
@@ -174,27 +190,22 @@ void TextBox_render_bg_color(TextBox* self, SDL_Renderer* renderer, SDL_Color co
     TextBox_render(self, renderer);
 }
 
-void TextBox_get_screen_coords(TextBox*self, SDL_Renderer* renderer, int* x, int* y) {
+void TextBox_get_screen_coords(TextBox* self, SDL_Renderer* renderer, int* x, int* y)
+{
     int screen_w, screen_h;
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
     *x = self->x + (self->x < 0 ? screen_w : 0);
     *y = self->y + (self->y < 0 ? screen_h : 0);
 }
 
-int TextBox_is_mouse_inside(TextBox* self, SDL_Renderer* renderer, int x, int y) {
+int TextBox_is_mouse_inside(TextBox* self, SDL_Renderer* renderer, int x, int y)
+{
     FC_Font* font = Fonts_getfont(self->font_size);
 
     int height = FC_GetLineHeight(font);
-    int width = (
-            self->box_width != 0 ? 
-            self->box_width : 
-            FC_GetWidth(font, TextBox_gettext(self))
-    );
+    int width = (self->box_width != 0 ? self->box_width : FC_GetWidth(font, TextBox_gettext(self)));
     int self_x, self_y;
     TextBox_get_screen_coords(self, renderer, &self_x, &self_y);
 
-    return (x >= self_x) &&
-		(x <= self_x + width) &&
-		(y >= self_y) &&
-		(y <= self_y + height);
+    return (x >= self_x) && (x <= self_x + width) && (y >= self_y) && (y <= self_y + height);
 }

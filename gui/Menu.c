@@ -3,7 +3,8 @@
 //only one textbox can be active across all menus
 TextBox* current_textbox = NULL;
 
-void Menu_init(Menu* self) {
+void Menu_init(Menu* self)
+{
     Vector_init(&self->buttons);
     Vector_init(&self->textboxes);
     self->is_hidden = 0;
@@ -11,45 +12,49 @@ void Menu_init(Menu* self) {
     self->selected_box = -1;
 }
 
-void Menu_deinit(Menu* self) {
+void Menu_deinit(Menu* self)
+{
     Vector_delete(&self->buttons);
     Vector_delete(&self->textboxes);
 }
 
-int Menu_add_button(Menu* self, Button b) {
+int Menu_add_button(Menu* self, Button b)
+{
     Button* newbutton = malloc(sizeof(Button));
     *newbutton = b;
     Vector_push(&self->buttons, newbutton);
     return self->buttons.num - 1;
 }
 
-int Menu_add_textbox(Menu* self, TextBox t) {
+int Menu_add_textbox(Menu* self, TextBox t)
+{
     TextBox* newbox = malloc(sizeof(TextBox));
     *newbox = t;
     Vector_push(&self->textboxes, newbox);
     return self->textboxes.num - 1;
 }
 
-Button* Menu_get_button(Menu* self, int id) {
+Button* Menu_get_button(Menu* self, int id)
+{
     return Vector_get(&self->buttons, id);
 }
 
-TextBox* Menu_get_textbox(Menu* self, int id) {
+TextBox* Menu_get_textbox(Menu* self, int id)
+{
     return Vector_get(&self->textboxes, id);
 }
 
-void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
+void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e)
+{
     switch (e->type) {
     case SDL_KEYDOWN:
         if (!current_textbox) {
-        }
-        else {
+        } else {
             if (e->key.keysym.sym == SDLK_ESCAPE) {
                 current_textbox->is_active = 0;
                 self->selected_box = -1;
                 current_textbox = NULL;
-            }
-            else if (e->key.keysym.sym == SDLK_BACKSPACE) {
+            } else if (e->key.keysym.sym == SDLK_BACKSPACE) {
                 TextBox_delete_end(current_textbox);
             }
         }
@@ -60,11 +65,11 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
         }
         break;
     case SDL_MOUSEBUTTONDOWN: {
-        if(e->button.button == SDL_BUTTON_LEFT) {
+        if (e->button.button == SDL_BUTTON_LEFT) {
             int x, y;
             SDL_GetMouseState(&x, &y);
             int in_textbox = 0;
-            for(int i = 0; i < self->textboxes.num; i++) {
+            for (int i = 0; i < self->textboxes.num; i++) {
                 TextBox* box = Vector_get(&self->textboxes, i);
                 if (TextBox_is_mouse_inside(box, renderer, x, y)) {
                     current_textbox = box;
@@ -76,12 +81,13 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
                 }
             }
             if (!in_textbox && current_textbox) {
-                current_textbox-> is_active = 0;
+                current_textbox->is_active = 0;
                 current_textbox = NULL;
             }
-            for(int i = 0; i < self->buttons.num; i++) {
+            for (int i = 0; i < self->buttons.num; i++) {
                 Button* but = Vector_get(&self->buttons, i);
-                if (but->is_hidden) continue;
+                if (but->is_hidden)
+                    continue;
                 if (Button_is_mouse_inside(but, renderer, x, y)) {
                     self->selected_button = i;
                     break;
@@ -92,31 +98,35 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e) {
     }
 }
 
-const TextBox* Menu_get_selected_textbox() {
+const TextBox* Menu_get_selected_textbox()
+{
     return current_textbox;
 }
 
-void Menu_deselect_textbox() {
-    if (!current_textbox) return;
+void Menu_deselect_textbox()
+{
+    if (!current_textbox)
+        return;
 
     current_textbox->is_active = 0;
     current_textbox = NULL;
 }
 
-void Menu_render(Menu* self, SDL_Renderer* renderer) {
+void Menu_render(Menu* self, SDL_Renderer* renderer)
+{
     int x, y;
     SDL_GetMouseState(&x, &y);
     if (self->is_hidden) {
         return;
     }
 
-    for(int i = 0; i < self->buttons.num; i++) {
+    for (int i = 0; i < self->buttons.num; i++) {
         Button* but = Vector_get(&self->buttons, i);
         but->is_hovered = Button_is_mouse_inside(but, renderer, x, y);
         Button_render(but, renderer);
     }
 
-    for(int i = 0; i < self->textboxes.num; i++) {
+    for (int i = 0; i < self->textboxes.num; i++) {
         TextBox_render_bg(Vector_get(&self->textboxes, i), renderer);
     }
 }

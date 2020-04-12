@@ -4,19 +4,19 @@
 
 #include "../SDL_FontCache/SDL_FontCache.h"
 
-#include "../gui/Window.h"
-#include "../gui/Dolly.h"
-#include "../gui/Camera.h"
 #include "../gui/Button.h"
-#include "../gui/TextBox.h"
-#include "../gui/Menu.h"
+#include "../gui/Camera.h"
+#include "../gui/Dolly.h"
 #include "../gui/Fonts.h"
+#include "../gui/Menu.h"
+#include "../gui/TextBox.h"
+#include "../gui/Window.h"
 
 #include "../game/Map.h"
 #include "../renderers/MapRenderer.h"
 
 #ifdef WIN32
-    #define strdup _strdup
+#define strdup _strdup
 #endif
 
 enum {
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 {
     if (argc != 1) {
         printf("Error, not expecting command line arguments\n");
-        for(int i = 1; i < argc; i++) {
+        for (int i = 1; i < argc; i++) {
             printf("%s\n", argv[i]);
         }
     }
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     Map_init(&map, NULL);
 
     init_top_menu();
-    
+
     int selected_tile = 0;
     int screen_button_pressed = 0;
 
@@ -97,20 +97,17 @@ int main(int argc, char** argv)
     int dt = 0;
     SDL_Event e;
     int done = 0;
-    while (!done)
-    {
+    while (!done) {
         screen_button_pressed = 0;
         dt = SDL_GetTicks() - current_time;
         current_time = SDL_GetTicks();
-        float float_dt = ((float) dt) / 1000.0f;
+        float float_dt = ((float)dt) / 1000.0f;
 
-        while (SDL_PollEvent(&e))
-        {
+        while (SDL_PollEvent(&e)) {
             Menu_pass_event(&top_menu, window->renderer, &e);
-            switch (e.type)
-            {
+            switch (e.type) {
             case SDL_KEYDOWN:
-                for(int i = 0; i < NUM_BINDS; i++) {
+                for (int i = 0; i < NUM_BINDS; i++) {
                     if (e.key.keysym.sym == BINDS[i]) {
                         bind_pressed[i] = 1;
                     }
@@ -121,30 +118,29 @@ int main(int argc, char** argv)
                             if (sscanf(box->buffer, "%d", &num)) {
                                 if (top_menu.selected_box == IDS[SIZE_BOX]) {
                                     brush_size = num;
-                                }
-                                else if (top_menu.selected_box == IDS[DEPTH_BOX]) {
+                                } else if (top_menu.selected_box == IDS[DEPTH_BOX]) {
                                     brush_depth = num;
                                 }
                             }
                             Menu_deselect_textbox();
                         }
                     }
-                } 
+                }
                 break;
             case SDL_KEYUP:
-                for(int i = 0; i < NUM_BINDS; i++) {
+                for (int i = 0; i < NUM_BINDS; i++) {
                     if (e.key.keysym.sym == BINDS[i]) {
                         bind_pressed[i] = 0;
                     }
-                } 
+                }
                 break;
             case SDL_MOUSEBUTTONDOWN: {
-                if(e.button.button == SDL_BUTTON_LEFT) {
+                if (e.button.button == SDL_BUTTON_LEFT) {
                     mouse_button_pressed[LEFT_BUTTON] = 1;
                 }
             } break;
             case SDL_MOUSEBUTTONUP:
-                if(e.button.button == SDL_BUTTON_LEFT) {
+                if (e.button.button == SDL_BUTTON_LEFT) {
                     mouse_button_pressed[LEFT_BUTTON] = 0;
                 }
                 break;
@@ -162,7 +158,8 @@ int main(int argc, char** argv)
 
                     Camera_set_size(&cam, viewport.w, viewport.h);
                 } break;
-                } break;
+                }
+                break;
             case SDL_QUIT:
                 done = 1;
                 break;
@@ -171,43 +168,48 @@ int main(int argc, char** argv)
 
         //if we're typing in textbox dont move camera around
         if (Menu_get_selected_textbox()) {
-            for(int i = 0; i < NUM_BINDS; i++) {
+            for (int i = 0; i < NUM_BINDS; i++) {
                 bind_pressed[i] = 0;
             }
         }
 
         //moving camera
         float move_amnt = camera_speed * float_dt;
-        if (bind_pressed[UP])    { Camera_translate(&cam, 0, -move_amnt); }
-        if (bind_pressed[DOWN])  { Camera_translate(&cam, 0, move_amnt);  }
-        if (bind_pressed[LEFT])  { Camera_translate(&cam, -move_amnt, 0); }
-        if (bind_pressed[RIGHT]) { Camera_translate(&cam, move_amnt, 0);  }
+        if (bind_pressed[UP]) {
+            Camera_translate(&cam, 0, -move_amnt);
+        }
+        if (bind_pressed[DOWN]) {
+            Camera_translate(&cam, 0, move_amnt);
+        }
+        if (bind_pressed[LEFT]) {
+            Camera_translate(&cam, -move_amnt, 0);
+        }
+        if (bind_pressed[RIGHT]) {
+            Camera_translate(&cam, move_amnt, 0);
+        }
 
         screen_button_pressed = 0;
         //check for button presses in top menu
         if (top_menu.selected_button >= 0) {
             if (top_menu.selected_button == IDS[SAVE_BTN]) {
                 Map_save(&map, Menu_get_textbox(&top_menu, IDS[SAVE_BOX])->buffer);
-            }
-            else if(top_menu.selected_button == IDS[LOAD_BTN]) {
+            } else if (top_menu.selected_button == IDS[LOAD_BTN]) {
                 Map_load(&map, Menu_get_textbox(&top_menu, IDS[SAVE_BOX])->buffer);
-            }
-            else if (top_menu.selected_button == IDS[TILE_BTN]) {
-                for(int i = 0; i < num_tiles; i++) {
+            } else if (top_menu.selected_button == IDS[TILE_BTN]) {
+                for (int i = 0; i < num_tiles; i++) {
                     Button* btn = Menu_get_button(&top_menu, TILE_IDS[i]);
                     btn->is_hidden = !btn->is_hidden;
                 }
             }
-            for(int i = 0; i < map.depth; i++) {
+            for (int i = 0; i < map.depth; i++) {
                 if (top_menu.selected_button == LAYER_IDS[i]) {
                     Menu_get_button(&top_menu, top_menu.selected_button)->is_active = 1;
                     brush_depth = i;
-                }
-                else {
+                } else {
                     Menu_get_button(&top_menu, LAYER_IDS[i])->is_active = 0;
                 }
             }
-            for(int i = 0; i < num_tiles; i++) {
+            for (int i = 0; i < num_tiles; i++) {
                 if (top_menu.selected_button == TILE_IDS[i]) {
                     int atlas_w = MapRenderer_get_texture_width();
 
@@ -219,13 +221,13 @@ int main(int argc, char** argv)
             }
             top_menu.selected_button = -1;
             screen_button_pressed = 1;
-            for(int i = 0; i < NUM_BUTTONS; i++) {
+            for (int i = 0; i < NUM_BUTTONS; i++) {
                 mouse_button_pressed[i] = 0;
             }
         }
 
         //brush painting, unless a menu button was pressed
-        int x,y;
+        int x, y;
         SDL_GetMouseState(&x, &y);
         if (mouse_button_pressed[LEFT_BUTTON] && !screen_button_pressed) {
             int screen_button_pressed = 0;
@@ -235,8 +237,8 @@ int main(int argc, char** argv)
                 worldx /= 64;
                 worldy /= 64;
                 int radius = brush_size - 1;
-                for(int brush_x = worldx - radius; brush_x <= worldx + radius; brush_x++) {
-                    for(int brush_y = worldy -radius; brush_y <= worldy + radius; brush_y++) {
+                for (int brush_x = worldx - radius; brush_x <= worldx + radius; brush_x++) {
+                    for (int brush_y = worldy - radius; brush_y <= worldy + radius; brush_y++) {
                         Map_set_tile(&map, selected_tile, brush_x, brush_y, brush_depth);
                     }
                 }
@@ -257,12 +259,13 @@ int main(int argc, char** argv)
         Menu_render(&top_menu, window->renderer);
         Window_present(window);
     }
-   
+
     MapRenderer_deinit();
     Window_delete(window);
 }
 
-void init_top_menu() {
+void init_top_menu()
+{
     Menu_init(&top_menu);
 
     //save text box
@@ -300,8 +303,8 @@ void init_top_menu() {
     int atlas_starty = 20;
 
     int index = 0;
-    for(int y = 0; y < atlas_h / 64; y++) {
-        for(int x = 0; x < atlas_w / 64; x++) {
+    for (int y = 0; y < atlas_h / 64; y++) {
+        for (int x = 0; x < atlas_w / 64; x++) {
             if (index >= MAX_NUM_TILES) {
                 printf("Error: too many tiles in texture!!!\n");
                 break;
@@ -329,7 +332,7 @@ void init_top_menu() {
     size_box.x = 0;
     size_box.y = 96;
     size_box.box_width = 64;
-    
+
     //cursor depth box
     TextBox depth_box;
     TextBox_init(&depth_box, "depth", 16);
@@ -342,7 +345,7 @@ void init_top_menu() {
     char layer_title[1024];
     int start_layer_x = -80;
     int start_layer_y = 192;
-    for(int i = 0; i < MAX_LAYERS; i++) {
+    for (int i = 0; i < MAX_LAYERS; i++) {
         Button layer;
         sprintf(layer_title, "layer %d", i);
         Button_init_text(&layer, layer_title, 16);

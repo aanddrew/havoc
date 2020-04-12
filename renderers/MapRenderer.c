@@ -11,7 +11,8 @@ static SDL_Texture* atlas_texture = NULL;
 int atlas_width = 0;
 int atlas_height = 0;
 
-void MapRenderer_init(SDL_Renderer* renderer) {
+void MapRenderer_init(SDL_Renderer* renderer)
+{
     atlas_surface = IMG_Load(texture_file);
     if (!atlas_surface) {
         printf("Error loading textures: %s\n", SDL_GetError());
@@ -21,12 +22,14 @@ void MapRenderer_init(SDL_Renderer* renderer) {
     atlas_texture = SDL_CreateTextureFromSurface(renderer, atlas_surface);
 }
 
-void MapRenderer_deinit() {
+void MapRenderer_deinit()
+{
     SDL_FreeSurface(atlas_surface);
     SDL_DestroyTexture(atlas_texture);
 }
 
-void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam) {
+void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam)
+{
     SDL_Rect srcrect;
     srcrect.w = TILE_WIDTH;
     srcrect.h = TILE_WIDTH;
@@ -39,9 +42,9 @@ void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam) {
     destrect.w = TILE_WIDTH;
     destrect.h = TILE_WIDTH;
 
-    for(int z = 0; z < self->depth; z++) {
-        for(int x = 0; x < self->width; x++) {
-            for(int y = 0; y < self->height; y++) {
+    for (int z = 0; z < self->depth; z++) {
+        for (int x = 0; x < self->width; x++) {
+            for (int y = 0; y < self->height; y++) {
                 Uint16 tile = Map_get_tile(self, x, y, z);
 
                 srcrect.x = (tile % atlas_width) * TILE_WIDTH;
@@ -57,14 +60,17 @@ void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam) {
     }
 }
 
-SDL_Texture* MapRenderer_gettexture() {
+SDL_Texture* MapRenderer_gettexture()
+{
     return atlas_texture;
 }
 
-int MapRenderer_get_texture_width() {
+int MapRenderer_get_texture_width()
+{
     return atlas_surface->w;
 }
 
-int MapRenderer_get_texture_height() {
+int MapRenderer_get_texture_height()
+{
     return atlas_surface->h;
 }

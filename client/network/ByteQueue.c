@@ -1,17 +1,20 @@
 #include "ByteQueue.h"
 
-void ByteQueue_init(ByteQueue* self, int size) {
+void ByteQueue_init(ByteQueue* self, int size)
+{
     self->data = malloc(size);
     self->max_size = size;
     self->head = 0;
     self->tail = 0;
 }
-void ByteQueue_deinit(ByteQueue* self) {
+void ByteQueue_deinit(ByteQueue* self)
+{
     free(self->data);
     self->data = NULL;
 }
 
-int ByteQueue_getbytes(ByteQueue* self, Uint8* output, int num) {
+int ByteQueue_getbytes(ByteQueue* self, Uint8* output, int num)
+{
     //if there are'nt even this many bytes in the queue
     if (self->tail - self->head + self->max_size < num) {
         return 0;
@@ -24,7 +27,8 @@ int ByteQueue_getbytes(ByteQueue* self, Uint8* output, int num) {
     return 1;
 }
 
-int ByteQueue_insert(ByteQueue* self, Uint8* input, int len) {
+int ByteQueue_insert(ByteQueue* self, Uint8* input, int len)
+{
     if (ByteQueue_availabie(self) < len) {
         return 0;
         //resize queue maybe???, this way doesn't work
@@ -38,7 +42,8 @@ int ByteQueue_insert(ByteQueue* self, Uint8* input, int len) {
     return 1;
 }
 
-int ByteQueue_full(ByteQueue* self) {
+int ByteQueue_full(ByteQueue* self)
+{
     int offset = 0;
     if (self->tail < self->head) {
         offset = self->max_size;
@@ -46,7 +51,7 @@ int ByteQueue_full(ByteQueue* self) {
     return self->tail - self->head + offset;
 }
 
-int ByteQueue_availabie(ByteQueue* self) {
+int ByteQueue_availabie(ByteQueue* self)
+{
     return self->max_size - ByteQueue_full(self);
 }
-
