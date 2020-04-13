@@ -17,9 +17,12 @@ typedef struct {
 	int x;
 	int y;
 
-    int box_width;
-    int is_active;
-    int is_hidden;
+    int centerx; // when non-zero x is added to half the renderer's width
+    int centery; // when non-zero y is added to half the renderer's height 
+
+    int box_width; // how wide is the background box
+    int is_active; // when non zero activates blinking cursor in this box
+    int is_hidden; // when non zero this box is not drawn
 } TextBox;
 
 void TextBox_init(TextBox* self, const char* placeholder, int font_size);
@@ -39,5 +42,6 @@ void TextBox_get_screen_coords(TextBox*self, SDL_Renderer* renderer, int* x, int
 
 int TextBox_is_mouse_inside(TextBox* self, SDL_Renderer* renderer, int x, int y);
 
+void TextBox_reset_cursor_blink_time();
 
 #endif

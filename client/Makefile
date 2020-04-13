@@ -9,5 +9,4 @@ $(ODIR)/%.o: ./%.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: $(ODIR)/main.o $(ODIR)/Controller.o
-	+$(MAKE) -C menus 
 	+$(MAKE) -C network

@@ -19,6 +19,9 @@ void TextBox_init(TextBox* self, const char* placeholder, int font_size)
 
     self->is_active = 0;
 
+    self->centerx = 0;
+    self->centery = 0;
+
     if (init_counts == 0) {
         cursor_rect.w = 5;
         cursor_color.r = 255;
@@ -194,8 +197,23 @@ void TextBox_get_screen_coords(TextBox* self, SDL_Renderer* renderer, int* x, in
 {
     int screen_w, screen_h;
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
-    *x = self->x + (self->x < 0 ? screen_w : 0);
-    *y = self->y + (self->y < 0 ? screen_h : 0);
+
+    int offsetx = 0;
+    if (self->centerx) {
+        offsetx = screen_w / 2;
+    } else if (self->x < 0) {
+        offsetx = screen_w;
+    }
+
+    int offsety = 0;
+    if (self->centery) {
+        offsety = screen_h / 2;
+    } else if (self->y < 0) {
+        offsety = screen_h;
+    }
+
+    *x = self->x + offsetx;
+    *y = self->y + offsety;
 }
 
 int TextBox_is_mouse_inside(TextBox* self, SDL_Renderer* renderer, int x, int y)
@@ -208,4 +226,9 @@ int TextBox_is_mouse_inside(TextBox* self, SDL_Renderer* renderer, int x, int y)
     TextBox_get_screen_coords(self, renderer, &self_x, &self_y);
 
     return (x >= self_x) && (x <= self_x + width) && (y >= self_y) && (y <= self_y + height);
+}
+
+void TextBox_reset_cursor_blink_time() {
+    is_blinking = 1;
+    last_blink_time = SDL_GetTicks();
 }

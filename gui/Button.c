@@ -12,6 +12,10 @@ void Button_init(Button* self)
     self->rect.y = 0;
     self->rect.w = 0;
     self->rect.h = 0;
+
+    self->centerx = 0;
+    self->centery = 0;
+
     self->texture = NULL;
     self->is_active = 0;
     self->is_hovered = 0;
@@ -42,6 +46,7 @@ void Button_init_text(Button* self, const char* msg, int font_size)
     self->font_size = font_size;
 
     FC_Font* font = Fonts_getfont(self->font_size);
+
     self->rect.w = FC_GetWidth(font, self->text);
     self->rect.h = FC_GetLineHeight(font);
 
@@ -49,7 +54,9 @@ void Button_init_text(Button* self, const char* msg, int font_size)
     self->srcrect.y = 0;
 
     self->is_active = 0;
+    self->is_hovered = 0;
     self->is_hidden = 0;
+    self->is_dummy = 0;
 }
 
 void Button_init_icon(Button* self, SDL_Renderer* renderer, const char* img_file)
@@ -80,7 +87,9 @@ void Button_init_texture(Button* self, SDL_Texture* tex)
     self->srcrect.h = 64;
 
     self->is_active = 0;
+    self->is_hovered = 0;
     self->is_hidden = 0;
+    self->is_dummy = 0;
 }
 
 void Button_render(Button* self, SDL_Renderer* renderer)
@@ -91,8 +100,7 @@ void Button_render(Button* self, SDL_Renderer* renderer)
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
 
     SDL_Rect temp_rect;
-    temp_rect.x = self->rect.x + (self->rect.x < 0 ? screen_w : 0);
-    temp_rect.y = self->rect.y + (self->rect.y < 0 ? screen_h : 0);
+    Button_get_screen_coords(self, renderer, &temp_rect.x, &temp_rect.y);
     temp_rect.w = self->rect.w;
     temp_rect.h = self->rect.h;
 
@@ -135,8 +143,22 @@ void Button_get_screen_coords(Button* self, SDL_Renderer* renderer, int* x, int*
 {
     int screen_w, screen_h;
     SDL_GetRendererOutputSize(renderer, &screen_w, &screen_h);
-    *x = self->rect.x + (self->rect.x < 0 ? screen_w : 0);
-    *y = self->rect.y + (self->rect.y < 0 ? screen_h : 0);
+
+    int offsetx = 0;
+    if (self->centerx) {
+        offsetx = screen_w / 2;
+    } else if (self->rect.x < 0) {
+        offsetx = screen_w;
+    }
+
+    int offsety = 0;
+    if (self->centery) {
+        offsety = screen_h / 2;
+    } else if (self->rect.y < 0) {
+        offsety = screen_h;
+    }
+    *x = self->rect.x + offsetx;
+    *y = self->rect.y + offsety;
 }
 
 int Button_is_mouse_inside(Button* self, SDL_Renderer* renderer, int x, int y)

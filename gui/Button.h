@@ -21,13 +21,17 @@ typedef struct {
         SDL_Texture* texture;
     };
 
+    int centerx; // when non-zero rect.x is added to half the renderer's width
+    int centery; // when non-zero rect.y is added to half the renderer's height 
+
     SDL_Color color;
 
-    SDL_Rect srcrect;
+    SDL_Rect srcrect; // srcrect for drawing from texture
 
-    int is_active;
-    int is_hovered;
-    int is_hidden;
+    int is_active; // when non-zero draw a square border around the button
+    int is_hovered; //when non-zero draw a gray semi-transparent square over the button
+    int is_hidden; //when non-zero don't draw the button
+    int is_dummy; //used by menus, when non-zero it should not be hovered or active
 } Button;
 
 void Button_init(Button* self);
