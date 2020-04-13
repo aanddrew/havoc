@@ -7,6 +7,8 @@
 #include "../renderers/GameRenderer.h"
 #include "../renderers/MapRenderer.h"
 
+#include "Hud.h"
+
 #include "../game/Game.h"
 
 #include "Controller.h"
@@ -39,6 +41,8 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     Game_init();
     GameRenderer_init(window->renderer);
     MapRenderer_init(window->renderer);
+
+    Hud_init();
 
     Map map;
     Map_init(&map, "editor/maps/test_map.hm");
@@ -160,6 +164,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         Window_clear(window);
         Map_render(&map, window->renderer, &cam);
         GameRenderer_render(window->renderer, &cam);
+        Hud_render(window->renderer, our_player);
         Window_present(window);
     }
 
@@ -177,6 +182,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         Network_disconnect();
         Network_deinit();
     }
+    Hud_deinit();
     GameRenderer_deinit();
     MapRenderer_deinit();
     return 0;

@@ -14,7 +14,9 @@ void Player_init(Player* self)
 
     self->name = NULL;
 
-    self->is_alive = 0;
+    self->health = 100.0f;
+
+    self->is_alive = 1;
     self->is_connected = 0;
 }
 
@@ -34,6 +36,14 @@ void Player_translate(Player* self, float dx, float dy)
 {
     self->pos.x += dx;
     self->pos.y += dy;
+}
+
+void Player_deal_damage(Player* self, float dmg)
+{
+    self->health -= dmg;
+    if (self->health < 0) {
+        self->is_alive = 0;
+    }
 }
 
 void Player_update_all(float dt)

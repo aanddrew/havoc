@@ -12,6 +12,8 @@ typedef struct {
 
     char* name;
 
+    float health;
+
     int is_alive;
     int is_connected;
 } Player;
@@ -21,6 +23,8 @@ void Player_init(Player* self);
 //moves the player based on their velocity and dt
 void Player_update(Player* self, float dt);
 void Player_translate(Player* self, float dx, float dy);
+
+void Player_deal_damage(Player* self, float dmg);
 
 void Player_update_all(float dt);
 
