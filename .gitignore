@@ -1,3 +1,4 @@
 havoc
-server/havoc_server
-editor/havoc_editor
+havoc_server
+havoc_editor
+obj

@@ -3,8 +3,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <SDL2/SDL_image.h>
-
 void Map_init(Map* self, const char* file_name)
 {
     if (file_name) {

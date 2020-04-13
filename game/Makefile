@@ -2,10 +2,10 @@ CC=gcc
 LFLAGS=-lm
 CFLAGS=-Wall -Werror -Wextra
 
-ODIR=../obj/server
+ODIR=../obj/game
 
 $(ODIR)/%.o: ./%.c 
 	@ mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: $(ODIR)/main.o $(ODIR)/Server_Receiver.o $(ODIR)/Server_Sender.o $(ODIR)/Server_Pool.o
+all: $(ODIR)/Projectile.o $(ODIR)/Player.o $(ODIR)/Map.o $(ODIR)/Game.o $(ODIR)/Vector2d.o

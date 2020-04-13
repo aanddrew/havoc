@@ -1,8 +1,6 @@
 #ifndef HAVOC_MAP_H
 #define HAVOC_MAP_H
 
-#include <SDL2/SDL.h>
-
 #include "../game/Player.h"
 
 typedef struct {
