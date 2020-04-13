@@ -228,7 +228,8 @@ int TextBox_is_mouse_inside(TextBox* self, SDL_Renderer* renderer, int x, int y)
     return (x >= self_x) && (x <= self_x + width) && (y >= self_y) && (y <= self_y + height);
 }
 
-void TextBox_reset_cursor_blink_time() {
+void TextBox_reset_cursor_blink_time()
+{
     is_blinking = 1;
     last_blink_time = SDL_GetTicks();
 }

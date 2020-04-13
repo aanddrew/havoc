@@ -3,6 +3,8 @@
 
 #include "Projectile.h"
 #include "Player.h"
+#include "Map.h"
+#include "Vector2d.h"
 
 void Game_init();
 void Game_deinit();

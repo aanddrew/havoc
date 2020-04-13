@@ -8,5 +8,5 @@ $(ODIR)/%.o: ./%.c
 	@ mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: $(ODIR)/main.o $(ODIR)/Controller.o
+all: $(ODIR)/main.o $(ODIR)/Controller.o $(ODIR)/GameLoop.o
 	+$(MAKE) -C network
