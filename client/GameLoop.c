@@ -45,9 +45,6 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
 
     Hud_init();
 
-    Map map;
-    Map_init(&map, "editor/maps/test_map.hm");
-
     Player* our_player = Player_connect_with_id("default", our_id);
 
     Camera cam;
@@ -181,10 +178,10 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         Controller_update(&c, &cam);
         Game_update(dt_float);
 
-        Map_collide_player(&map, our_player);
+        Map_collide_player(Game_getmap(), our_player);
 
         Window_clear(window);
-        Map_render(&map, window->renderer, &cam);
+        Map_render(Game_getmap(), window->renderer, &cam);
         GameRenderer_render(window->renderer, &cam);
         Hud_render(window->renderer, our_player);
         Window_present(window);

@@ -6,6 +6,7 @@
 void Map_init(Map* self, const char* file_name)
 {
     if (file_name) {
+        self->tiles = NULL;
         Map_load(self, file_name);
         return;
     }
@@ -79,7 +80,7 @@ void Map_load(Map* self, const char* file_name)
 {
     FILE* file = fopen(file_name, "rb");
     if (!file) {
-        printf("Error writing to file: %s\n", file_name);
+        printf("Error reading from file: %s\n", file_name);
         return;
     }
 
@@ -89,7 +90,7 @@ void Map_load(Map* self, const char* file_name)
     fread(&self->depth, 4, 1, file);
     int num_tiles = self->width * self->height * self->depth;
 
-    if (self->tiles) {
+    if (self->tiles != NULL) {
         free(self->tiles);
     }
     self->tiles = malloc(sizeof(Uint16) * num_tiles);
