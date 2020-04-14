@@ -1,6 +1,5 @@
-CC=gcc
-CFLAGS=-Wall -Werror -Wextra -g
-LFLAGS=-lSDL2 -lSDL_net -lSDL2_ttf -lSDL2_image -lm
+include common.make
+LFLAGS=-lSDL2 -lSDL_net -lSDL2_ttf -lSDL2_image -lm 
 SERVER_LFLAGS=-lSDL2 -lSDL_net -lm
 
 CLIENT_OUT=havoc

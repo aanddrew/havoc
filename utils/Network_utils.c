@@ -23,14 +23,16 @@ UDPpacket* Network_create_player_packet(Player* player)
     SDLNet_Write32(my_look_x, pack->data + 20);
     SDLNet_Write32(my_look_y, pack->data + 24);
 
-    pack->len = 28;
+    SDLNet_Write32(*((Uint32*) &player->health), pack->data + 28);
+
+    pack->len = 32;
 
     return pack;
 }
 
-void Network_decipher_player_packet(UDPpacket* pack, Player* player)
+void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server)
 {
-    if (pack->len != 32) {
+    if (pack->len != 36) {
         printf("INVALID PLAYER PACKET, length of %d\n", pack->len);
         return;
     }
@@ -50,6 +52,22 @@ void Network_decipher_player_packet(UDPpacket* pack, Player* player)
     Uint32 look_y = SDLNet_Read32(pack->data + 28);
     player->look.x = *((float*)&look_x);
     player->look.y = *((float*)&look_y);
+
+    if (!server) {
+        Uint32 health = SDLNet_Read32(pack->data + 32);
+        player->health= *((float*)&health);
+    }
+}
+
+//we only care about receiving health from the server right now
+void Network_decipher_own_player_packet(UDPpacket* pack, Player* player) {
+    if (pack->len != 36) {
+        printf("INVALID PLAYER PACKET, length of %d\n", pack->len);
+        return;
+    }
+
+    Uint32 health = SDLNet_Read32(pack->data + 32);
+    player->health= *((float*)&health);
 }
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj)
@@ -82,6 +100,8 @@ void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj)
     if (proj) {
         printf("Error, proj parameter is not used at the moment\n");
     }
+    Uint32 id = SDLNet_Read32(pack->data);
+
     Uint32 kind = SDLNet_Read32(pack->data + 8);
 
     Uint32 my_x = SDLNet_Read32(pack->data + 12);
@@ -96,7 +116,7 @@ void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj)
     dir.x = *((float*)&my_dir_x);
     dir.y = *((float*)&my_dir_y);
 
-    Proj_launch((int)kind, pos, dir, NULL);
+    Proj_launch((int)kind, pos, dir, Player_get(id)->team, NULL);
 }
 
 #define MAX_NAME_SIZE 32
@@ -110,9 +130,12 @@ UDPpacket* Network_create_change_name_packet(const char* name)
     }
     SDLNet_Write32(CHANGE_NAME, pack->data);
 
-    for (int i = 0; i < (int)(strlen(name) + 1) && i < MAX_NAME_SIZE - 1; i++) {
+
+    int i;
+    for (i = 0; i < (int)(strlen(name)) && i < MAX_NAME_SIZE - 1; i++) {
         pack->data[i + 4] = name[i];
     }
+    pack->data[i + 4] = '\0';
 
     return pack;
 }
@@ -154,7 +177,7 @@ UDPpacket* Network_create_receive_names_packet()
     for (int i = 0; i < Player_num_players(); i++) {
         Player* p = Player_get(i);
         if (p) {
-            SDLNet_Write32(i, head);
+            SDLNet_Write32(i, (Uint32*)head);
             head += 4;
             for (int i = 0; i < (int)(strlen(p->name) + 1); i++) {
                 *head = p->name[i];

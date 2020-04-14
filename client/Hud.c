@@ -18,6 +18,7 @@ void Hud_init()
     health_but.rect.x = -200;
     health_but.rect.y = -70;
     health_but.centerx = 1;
+    health_but.is_dummy = 1;
     Menu_add_button(&hud_menu, health_but);
 }
 

@@ -73,6 +73,14 @@ void Controller_mousewheel(Controller* self, SDL_MouseWheelEvent e)
     Camera_zoom(self->cam, ((float)scrolled) / 15.0f + 1.0f);
 }
 
+void Controller_unpress_all(Controller* self)
+{ 
+    for (int i = 0; i < NUM_BINDS; i++) {
+        self->binds[i] = default_binds[i];
+        self->pressed[i] = 0;
+    }
+}
+
 void Controller_update(Controller* self, const Camera* cam)
 {
     //update the look vector based on mouse position

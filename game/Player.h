@@ -3,12 +3,16 @@
 
 #include "../gui/Dolly.h"
 #include "Vector2d.h"
+#include "HitBox.h"
 
 typedef struct {
     Vector2d pos;
     Vector2d vel;
     Vector2d look;
     float speed;
+
+    HitBox hitbox;
+    int team;
 
     char* name;
 
@@ -19,6 +23,9 @@ typedef struct {
 } Player;
 
 void Player_init(Player* self);
+void Player_deinit(Player* self);
+
+void Player_init_all();
 
 //moves the player based on their velocity and dt
 void Player_update(Player* self, float dt);

@@ -42,29 +42,56 @@ int main()
                 case PLAYER_UPDATE:
                     if (!Player_get(id)) {
                         Player_connect("unknown_player", NULL);
+                        Player_get(id)->team = id;
                     }
+                    Network_decipher_player_packet(pack, Player_get(id), 1);
+                    SDLNet_FreePacket(pack);
+                    pack = NULL;
                     break;
                 case CHANGE_NAME:
-                    Player_set_name((char*)(pack->data + 8), id);
+                    Network_decipher_change_name_packet(pack);
+                    SDLNet_FreePacket(pack);
+                    pack = NULL;
                     break;
                 case PROJECTILE_LAUNCH:
-                    //Network_decipher_projectile_packet(pack, NULL);
+                    Network_decipher_projectile_packet(pack, NULL);
                     break;
                 case GET_NAMES:
                     SDLNet_FreePacket(pack);
                     pack = Network_create_receive_names_packet();
                     break;
                 }
-                SDL_LockMutex(shared_pool.sending_mutex);
-                Vector_push(shared_pool.sending, pack);
-                SDL_UnlockMutex(shared_pool.sending_mutex);
+
+                if (pack) {
+                    SDL_LockMutex(shared_pool.sending_mutex);
+                    Vector_push(shared_pool.sending, pack);
+                    SDL_UnlockMutex(shared_pool.sending_mutex);
+                }
             }
 
-            Proj_update_all(delta);
+            Game_update(((float) delta) /1000.0f );
+
+            //send player information back to the clients
+            for (int i = 0; i < Player_num_players(); i++) {
+                Player* p = Player_get(i);
+                if (p) {
+                    UDPpacket* pack = Network_create_player_packet(p);
+                    UDPpacket* copy = SDLNet_AllocPacket(pack->maxlen + 4);
+                    SDLNet_Write32(i, copy->data);
+                    for(int i = 0; i < pack->len; i++) {
+                        copy->data[i + 4] = pack->data[i];
+                    }
+                    copy->len = pack->len + 4;
+                    SDLNet_FreePacket(pack);
+
+                    SDL_LockMutex(shared_pool.sending_mutex);
+                    Vector_push(shared_pool.sending, copy);
+                    SDL_UnlockMutex(shared_pool.sending_mutex);
+                }
+            }
 
             last_time += delta;
         }
-        //now send other info back to players
     }
 
     Server_Receiver_stop();

@@ -48,20 +48,22 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e)
 {
     switch (e->type) {
     case SDL_KEYDOWN:
-        if (!current_textbox) {
-        } else {
+        if (current_textbox) {
             if (e->key.keysym.sym == SDLK_ESCAPE) {
                 current_textbox->is_active = 0;
                 self->selected_box = -1;
                 current_textbox = NULL;
             } else if (e->key.keysym.sym == SDLK_BACKSPACE) {
                 TextBox_delete_end(current_textbox);
-            } else if (e->key.keysym.sym == SDLK_TAB) {
+            } 
+        }
+
+        if (e->key.keysym.sym == SDLK_TAB && self->textboxes.num > 0) {
+            if (current_textbox)
                 current_textbox->is_active = 0;
-                self->selected_box = (self->selected_box + 1) % self->textboxes.num;
-                current_textbox = Vector_get(&self->textboxes, self->selected_box);
-                current_textbox->is_active = 1;
-            }
+            self->selected_box = (self->selected_box + 1) % self->textboxes.num;
+            current_textbox = Vector_get(&self->textboxes, self->selected_box);
+            current_textbox->is_active = 1;
         }
         break;
     case SDL_TEXTINPUT:

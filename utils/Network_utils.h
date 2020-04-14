@@ -24,7 +24,8 @@ enum MESSAGE_TYPE {
 };
 
 UDPpacket* Network_create_player_packet(Player* player);
-void Network_decipher_player_packet(UDPpacket* pack, Player* player);
+void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server);
+void Network_decipher_own_player_packet(UDPpacket* pack, Player* player);
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj);
 void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj);

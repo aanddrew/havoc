@@ -10,14 +10,27 @@ void Player_init(Player* self)
 {
     self->pos.x = 0.0f;
     self->pos.y = 0.0f;
+    self->vel.x = 0.0f;
+    self->vel.y = 0.0f;
     self->speed = 200.0f;
 
-    self->name = NULL;
+    self->name = strdup("default");
+
+    HitBox_init(&self->hitbox);
+    self->hitbox.center.x = self->pos.x;
+    self->hitbox.center.y = self->pos.y;
+    self->hitbox.radius = 32;
+
+    self->team = -1;
 
     self->health = 100.0f;
 
     self->is_alive = 1;
     self->is_connected = 0;
+}
+
+void Player_deinit(Player* self) {
+    HitBox_deinit(&self->hitbox);
 }
 
 void Player_init_all()
@@ -29,6 +42,8 @@ void Player_init_all()
 
 void Player_update(Player* self, float dt)
 {
+    self->hitbox.center.x = self->pos.x;
+    self->hitbox.center.y = self->pos.y;
     Player_translate(self, self->vel.x * dt, self->vel.y * dt);
 }
 

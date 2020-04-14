@@ -26,6 +26,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     int online = 0;
     Network_init();
     online = Network_connect(server_hostname);
+    printf("Joining with name: %s\n", wish_name);
     if (!online) {
         printf("You are offline\n");
         Network_deinit();
@@ -62,6 +63,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     int dt = 0;
     SDL_Event e;
     int done = 0;
+    int is_paused = 0;
     while (!done) {
         dt = SDL_GetTicks() - current_time;
         current_time = SDL_GetTicks();
@@ -69,6 +71,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
             case SDL_KEYDOWN:
+                if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    is_paused = !is_paused;
+                }
                 Controller_keydown(&c, e.key.keysym.sym);
                 break;
             case SDL_KEYUP:
@@ -134,8 +139,13 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                 //all other events
                 switch (message_type) {
                 case PLAYER_UPDATE:
-                    if (id != (Uint32)our_id)
-                        Network_decipher_player_packet(pack, Player_get(id));
+                    if (id != (Uint32)our_id) {
+                        Network_decipher_player_packet(pack, Player_get(id), 0);
+                    }
+                    else {
+                        Network_decipher_own_player_packet(pack, Player_get(id));
+                    }
+
                     break;
                 case PROJECTILE_LAUNCH:
                     Network_decipher_projectile_packet(pack, NULL);
@@ -156,6 +166,10 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         /* Update own copy of the game*/
 
         float dt_float = ((float)dt) / 1000.0f;
+        if (is_paused) {
+            Controller_unpress_all(&c);
+        }
+
         Controller_update(&c, &cam);
         Game_update(dt_float);
 

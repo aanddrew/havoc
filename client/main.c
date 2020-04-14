@@ -147,6 +147,12 @@ int MainMenu_Loop(Window* window)
         while (SDL_PollEvent(&e)) {
             Menu_pass_event(&main_menu, window->renderer, &e);
             switch (e.type) {
+            case SDL_KEYDOWN: {
+                if (e.key.keysym.sym == SDLK_c) {
+                    done = 1;
+                    ret = CONNECT;
+                }
+            } break;
             case SDL_MOUSEBUTTONDOWN: {
                 int mousex, mousey;
                 SDL_GetMouseState(&mousex, &mousey);

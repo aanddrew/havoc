@@ -3,6 +3,7 @@
 
 #include "Vector2d.h"
 #include "Player.h"
+#include "HitBox.h"
 
 //
 // In this class there is a static array of projectile objects,
@@ -14,6 +15,10 @@ typedef struct {
     Vector2d pos; 
     Vector2d dir; 
     float speed;
+
+    HitBox hitbox;
+    int team;
+
     float time_alive;
     float max_time_alive;
 
@@ -32,12 +37,12 @@ void Proj_init_all();
 void Proj_init(Projectile* self, Vector2d pos, Vector2d dir);
 
 //launch projectile at given index
-Projectile* Proj_launch_at_index(int kind, Vector2d pos, Vector2d dir, int index);
+Projectile* Proj_launch_at_index(int kind, Vector2d pos, Vector2d dir, int team, int index);
 
 //this will automatically find an open index in the array,
 //create a projectile in the private array, then
 //fill index with the index of that projectile in the array
-Projectile* Proj_launch(int kind, Vector2d pos, Vector2d dir, int* index);
+Projectile* Proj_launch(int kind, Vector2d pos, Vector2d dir, int team, int* index);
 
 void Proj_update_all(float dt);
 

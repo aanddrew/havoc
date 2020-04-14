@@ -1,10 +1,8 @@
-CC=gcc
-LFLAGS=-lm
-CFLAGS=-Wall -Werror -Wextra
+include ../common.make
 
 %.o: ./%.c 
 	@ mkdir -p ../obj/editor
-	$(CC) -c -o ../obj/editor/$@ $< $(LFLAGS) $(CFLAGS)
+	$(CC) -c -o ../obj/editor/$@ $< $(CFLAGS)
 
 SRCS=$(wildcard *.c)
 

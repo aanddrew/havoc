@@ -35,7 +35,6 @@ void Player_render_all(SDL_Renderer* renderer, const Camera* cam)
             float name_x, name_y;
             Camera_transform_point(cam, p->pos.x, p->pos.y, &name_x, &name_y);
             //render player's name
-            //printf("%f, %f, %s\n", name_x, name_y, p->name);
             int fontwidth = FC_GetWidth(Fonts_getfont(8), p->name);
             FC_Draw(Fonts_getfont(8),
                 renderer,

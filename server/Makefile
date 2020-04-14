@@ -1,6 +1,4 @@
-CC=gcc
-LFLAGS=-lm
-CFLAGS=-Wall -Werror -Wextra
+include ../common.make
 
 ODIR=../obj/server
 
