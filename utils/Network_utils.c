@@ -1,5 +1,15 @@
 #include "Network_utils.h"
 
+void print_packet(UDPpacket* pack)
+{
+    printf("Printing packet %p\n", pack);
+    for (int i = 0; i < pack->len; i++) {
+        if (i % 4 == 0)
+            printf("\n");
+        printf("%x ", (int)pack->data[i]);
+    }
+}
+
 UDPpacket* Network_create_player_packet(Player* player)
 {
     UDPpacket* pack = SDLNet_AllocPacket(64);
@@ -253,18 +263,22 @@ void Network_decipher_get_names_packet(UDPpacket* pack) {
 UDPpacket* Network_create_receive_names_packet()
 {
     UDPpacket* pack = SDLNet_AllocPacket(MAX_NAME_SIZE * 10 + 8 + 10);
+
     SDLNet_Write32(-1, pack->data);
     SDLNet_Write32(RECEIVE_NAMES, pack->data + 4);
+
     char* head = (char*)(pack->data + 8);
     for (int i = 0; i < Player_num_players(); i++) {
         Player* p = Player_get(i);
         if (p) {
             SDLNet_Write32(i, (Uint32*)head);
             head += 4;
-            for (int i = 0; i < (int)(strlen(p->name) + 1); i++) {
-                *head = p->name[i];
+            for (int j = 0; j < (int)(strlen(p->name)); j++) {
+                *head = p->name[j];
                 head++;
             }
+            *head = 0;
+            head++;
         }
     }
     pack->len = (int)(((Uint8*)head) - pack->data) + 1;
@@ -278,6 +292,7 @@ void Network_decipher_receive_names_packet(UDPpacket* pack)
     while (head <= end - 4) {
         int id = SDLNet_Read32(head);
         head += 4;
+
         char name[MAX_NAME_SIZE];
         int i = 0;
         while (*head != '\0' && i < MAX_NAME_SIZE - 1) {
@@ -285,6 +300,7 @@ void Network_decipher_receive_names_packet(UDPpacket* pack)
             head++;
             i++;
         }
+        head++; //skips head past null character, otherwise next id is WRONG
         name[i] = '\0';
 
         Player_set_name(name, id);

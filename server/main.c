@@ -70,6 +70,7 @@ int main()
                 default:
                     SDLNet_FreePacket(pack);
                     pack = NULL;
+                    break;
                 }
 
                 if (pack) {

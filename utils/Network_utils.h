@@ -26,6 +26,8 @@ enum MESSAGE_TYPE {
     PROJECTILE_DEATH,
 };
 
+void print_packet(UDPpacket* pack);
+
 //players
 UDPpacket* Network_create_player_packet(Player* player);
 void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server);
