@@ -33,6 +33,7 @@ void Proj_init(Projectile* self, Vector2d pos, Vector2d dir)
 
     self->team = -1;
 
+    self->is_checked_by_server = 0;
     self->is_alive = 0;
     self->is_allocated = 0;
 }
@@ -119,4 +120,25 @@ Projectile* Proj_get(int index)
         return NULL;
     }
     return &projectiles[index];
+}
+
+int Proj_server_should_kill(int index)
+{
+    if (index >= num_projectiles || index < 0) {
+        return 0;
+    }
+
+    if (!projectiles[index].is_alive && !projectiles[index].is_checked_by_server) {
+        return 1;
+    }
+    return 0;
+}
+
+void Proj_server_do_kill(int index)
+{
+    if (index >= num_projectiles || index < 0) {
+        return;
+    }
+
+    projectiles[index].is_checked_by_server = 1;
 }

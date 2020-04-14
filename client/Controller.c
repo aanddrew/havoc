@@ -74,7 +74,7 @@ void Controller_mousewheel(Controller* self, SDL_MouseWheelEvent e)
 }
 
 void Controller_unpress_all(Controller* self)
-{ 
+{
     for (int i = 0; i < NUM_BINDS; i++) {
         self->binds[i] = default_binds[i];
         self->pressed[i] = 0;

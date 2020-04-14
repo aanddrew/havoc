@@ -141,14 +141,16 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                 case PLAYER_UPDATE:
                     if (id != (Uint32)our_id) {
                         Network_decipher_player_packet(pack, Player_get(id), 0);
-                    }
-                    else {
+                    } else {
                         Network_decipher_own_player_packet(pack, Player_get(id));
                     }
 
                     break;
                 case PROJECTILE_LAUNCH:
                     Network_decipher_projectile_packet(pack, NULL);
+                    break;
+                case PROJECTILE_DEATH:
+                    Network_decipher_projectile_death_packet(pack);
                     break;
                 case CHANGE_NAME:
                     Network_decipher_change_name_packet(pack);

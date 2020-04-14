@@ -69,7 +69,7 @@ int main()
                 }
             }
 
-            Game_update(((float) delta) /1000.0f );
+            Game_update(((float)delta) / 1000.0f);
 
             //send player information back to the clients
             for (int i = 0; i < Player_num_players(); i++) {
@@ -78,7 +78,7 @@ int main()
                     UDPpacket* pack = Network_create_player_packet(p);
                     UDPpacket* copy = SDLNet_AllocPacket(pack->maxlen + 4);
                     SDLNet_Write32(i, copy->data);
-                    for(int i = 0; i < pack->len; i++) {
+                    for (int i = 0; i < pack->len; i++) {
                         copy->data[i + 4] = pack->data[i];
                     }
                     copy->len = pack->len + 4;
@@ -86,6 +86,19 @@ int main()
 
                     SDL_LockMutex(shared_pool.sending_mutex);
                     Vector_push(shared_pool.sending, copy);
+                    SDL_UnlockMutex(shared_pool.sending_mutex);
+                }
+            }
+
+            //send information about projectiles dying
+            for (int i = 0; i < Proj_num_projectiles(); i++) {
+                if (Proj_server_should_kill(i)) {
+                    Proj_server_do_kill(i);
+                    printf("Sending kill packet in server\n");
+                    UDPpacket* pack = Network_create_projectile_death_packet(i);
+
+                    SDL_LockMutex(shared_pool.sending_mutex);
+                    Vector_push(shared_pool.sending, pack);
                     SDL_UnlockMutex(shared_pool.sending_mutex);
                 }
             }

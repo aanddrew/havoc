@@ -29,7 +29,8 @@ void Player_init(Player* self)
     self->is_connected = 0;
 }
 
-void Player_deinit(Player* self) {
+void Player_deinit(Player* self)
+{
     HitBox_deinit(&self->hitbox);
 }
 

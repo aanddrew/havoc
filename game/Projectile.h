@@ -22,6 +22,8 @@ typedef struct {
     float time_alive;
     float max_time_alive;
 
+    int is_checked_by_server;
+
     int is_alive;
     int is_allocated;
 } Projectile;
@@ -48,5 +50,7 @@ void Proj_update_all(float dt);
 
 int Proj_num_projectiles();
 Projectile* Proj_get(int index);
+int Proj_server_should_kill(int index);
+void Proj_server_do_kill(int index);
 
 #endif

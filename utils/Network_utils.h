@@ -23,19 +23,22 @@ enum MESSAGE_TYPE {
     PROJECTILE_DEATH,
 };
 
+//players
 UDPpacket* Network_create_player_packet(Player* player);
 void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server);
 void Network_decipher_own_player_packet(UDPpacket* pack, Player* player);
 
+//projectiles
 UDPpacket* Network_create_projectile_packet(Projectile* proj);
 void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj);
+UDPpacket* Network_create_projectile_death_packet(int id);
+void Network_decipher_projectile_death_packet(UDPpacket* pack);
 
+//names
 UDPpacket* Network_create_change_name_packet();
 void Network_decipher_change_name_packet(UDPpacket* pack);
-
 UDPpacket* Network_create_get_names_packet();
 void Network_decipher_get_names_packet(UDPpacket* pack);
-
 UDPpacket* Network_create_receive_names_packet();
 void Network_decipher_receive_names_packet(UDPpacket* pack);
 

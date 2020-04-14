@@ -23,7 +23,7 @@ UDPpacket* Network_create_player_packet(Player* player)
     SDLNet_Write32(my_look_x, pack->data + 20);
     SDLNet_Write32(my_look_y, pack->data + 24);
 
-    SDLNet_Write32(*((Uint32*) &player->health), pack->data + 28);
+    SDLNet_Write32(*((Uint32*)&player->health), pack->data + 28);
 
     pack->len = 32;
 
@@ -55,19 +55,20 @@ void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server)
 
     if (!server) {
         Uint32 health = SDLNet_Read32(pack->data + 32);
-        player->health= *((float*)&health);
+        player->health = *((float*)&health);
     }
 }
 
 //we only care about receiving health from the server right now
-void Network_decipher_own_player_packet(UDPpacket* pack, Player* player) {
+void Network_decipher_own_player_packet(UDPpacket* pack, Player* player)
+{
     if (pack->len != 36) {
         printf("INVALID PLAYER PACKET, length of %d\n", pack->len);
         return;
     }
 
     Uint32 health = SDLNet_Read32(pack->data + 32);
-    player->health= *((float*)&health);
+    player->health = *((float*)&health);
 }
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj)
@@ -119,6 +120,28 @@ void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj)
     Proj_launch((int)kind, pos, dir, Player_get(id)->team, NULL);
 }
 
+UDPpacket* Network_create_projectile_death_packet(int id)
+{
+    UDPpacket* pack = SDLNet_AllocPacket(12);
+    SDLNet_Write32(-1, pack->data);
+    SDLNet_Write32(PROJECTILE_DEATH, pack->data + 4);
+    SDLNet_Write32(id, pack->data + 8);
+    pack->len = 12;
+    return pack;
+}
+
+void Network_decipher_projectile_death_packet(UDPpacket* pack)
+{
+    if (pack->len != 12) {
+        printf("INVALID LENGTH FOR PROJECTILE DECIPHER PACKET\n");
+    }
+    Uint32 id = SDLNet_Read32(pack->data + 8);
+    Projectile* p = Proj_get((int)id);
+    if (p) {
+        p->is_alive = 0;
+    }
+}
+
 #define MAX_NAME_SIZE 32
 UDPpacket* Network_create_change_name_packet(const char* name)
 {
@@ -129,7 +152,6 @@ UDPpacket* Network_create_change_name_packet(const char* name)
         pack->len = 4 + strlen(name) + 1;
     }
     SDLNet_Write32(CHANGE_NAME, pack->data);
-
 
     int i;
     for (i = 0; i < (int)(strlen(name)) && i < MAX_NAME_SIZE - 1; i++) {

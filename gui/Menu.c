@@ -55,7 +55,7 @@ void Menu_pass_event(Menu* self, SDL_Renderer* renderer, const SDL_Event* e)
                 current_textbox = NULL;
             } else if (e->key.keysym.sym == SDLK_BACKSPACE) {
                 TextBox_delete_end(current_textbox);
-            } 
+            }
         }
 
         if (e->key.keysym.sym == SDLK_TAB && self->textboxes.num > 0) {
