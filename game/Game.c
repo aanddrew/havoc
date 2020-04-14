@@ -17,12 +17,12 @@ void Game_update(float dt)
     //now make projectiles collide with players
     for (int i = 0; i < Proj_num_projectiles(); i++) {
         for (int j = 0; j < Player_num_players(); j++) {
-            if (!Player_get(j) || !Proj_get(i)) {
+            if (!Player_get(j) || !Proj_get(i))
                 continue;
-            }
-            if (Player_get(j)->team == Proj_get(i)->team) {
+            if (Player_get(j)->team == Proj_get(i)->team)
                 continue;
-            }
+            if (!Player_get(j)->is_alive)
+                continue;
 
             if (HitBox_collision(&Proj_get(i)->hitbox, &Player_get(j)->hitbox)) {
                 printf("Checking in server\n");

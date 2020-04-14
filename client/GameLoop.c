@@ -146,6 +146,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                     }
 
                     break;
+                case PLAYER_DIE:
+                    Network_decipher_player_die_packet(pack);
+                    break;
                 case PROJECTILE_LAUNCH:
                     Network_decipher_projectile_packet(pack, NULL);
                     break;
@@ -168,7 +171,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         /* Update own copy of the game*/
 
         float dt_float = ((float)dt) / 1000.0f;
-        if (is_paused) {
+        if (is_paused || !our_player->is_alive) {
             Controller_unpress_all(&c);
         }
 

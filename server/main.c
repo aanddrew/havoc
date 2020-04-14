@@ -44,7 +44,9 @@ int main()
                         Player_connect("unknown_player", NULL);
                         Player_get(id)->team = id;
                     }
-                    Network_decipher_player_packet(pack, Player_get(id), 1);
+                    if (Player_get(id)->is_alive) {
+                        Network_decipher_player_packet(pack, Player_get(id), 1);
+                    }
                     SDLNet_FreePacket(pack);
                     pack = NULL;
                     break;
@@ -54,7 +56,13 @@ int main()
                     pack = NULL;
                     break;
                 case PROJECTILE_LAUNCH:
-                    Network_decipher_projectile_packet(pack, NULL);
+                    if (Player_get(id) && Player_get(id)->is_alive) {
+                        printf("from id %d\n", id);
+                        Network_decipher_projectile_packet(pack, NULL);
+                    } else {
+                        SDLNet_FreePacket(pack);
+                        pack = NULL;
+                    }
                     break;
                 case GET_NAMES:
                     SDLNet_FreePacket(pack);
@@ -75,6 +83,7 @@ int main()
             for (int i = 0; i < Player_num_players(); i++) {
                 Player* p = Player_get(i);
                 if (p) {
+                    //send position velocity health to clients
                     UDPpacket* pack = Network_create_player_packet(p);
                     UDPpacket* copy = SDLNet_AllocPacket(pack->maxlen + 4);
                     SDLNet_Write32(i, copy->data);
@@ -87,6 +96,17 @@ int main()
                     SDL_LockMutex(shared_pool.sending_mutex);
                     Vector_push(shared_pool.sending, copy);
                     SDL_UnlockMutex(shared_pool.sending_mutex);
+
+                    //if the player is dead tell clients
+                    if (!p->is_alive) {
+                        p->is_death_checked_by_server = 1;
+
+                        UDPpacket* deathpack = Network_create_player_die_packet(i);
+
+                        SDL_LockMutex(shared_pool.sending_mutex);
+                        Vector_push(shared_pool.sending, deathpack);
+                        SDL_UnlockMutex(shared_pool.sending_mutex);
+                    }
                 }
             }
 
@@ -94,7 +114,6 @@ int main()
             for (int i = 0; i < Proj_num_projectiles(); i++) {
                 if (Proj_server_should_kill(i)) {
                     Proj_server_do_kill(i);
-                    printf("Sending kill packet in server\n");
                     UDPpacket* pack = Network_create_projectile_death_packet(i);
 
                     SDL_LockMutex(shared_pool.sending_mutex);

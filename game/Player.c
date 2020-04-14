@@ -25,6 +25,7 @@ void Player_init(Player* self)
 
     self->health = 100.0f;
 
+    self->is_death_checked_by_server = 0;
     self->is_alive = 1;
     self->is_connected = 0;
 }
@@ -59,6 +60,7 @@ void Player_deal_damage(Player* self, float dmg)
     self->health -= dmg;
     if (self->health < 0) {
         self->is_alive = 0;
+        self->is_death_checked_by_server = 0;
     }
 }
 

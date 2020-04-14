@@ -18,6 +18,7 @@ typedef struct {
 
     float health;
 
+    int is_death_checked_by_server;
     int is_alive;
     int is_connected;
 } Player;

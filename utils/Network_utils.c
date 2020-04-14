@@ -71,6 +71,31 @@ void Network_decipher_own_player_packet(UDPpacket* pack, Player* player)
     player->health = *((float*)&health);
 }
 
+UDPpacket* Network_create_player_die_packet(int id)
+{
+    UDPpacket* pack = SDLNet_AllocPacket(12);
+    SDLNet_Write32(-1, pack->data);
+    SDLNet_Write32(PLAYER_DIE, pack->data + 4);
+    SDLNet_Write32(id, pack->data + 8);
+    pack->len = 12;
+    return pack;
+}
+
+void Network_decipher_player_die_packet(UDPpacket* pack)
+{
+    if (pack->len != 12) {
+        printf("INVALID PLAYER DIE PACKET, length of %d\n", pack->len);
+        return;
+    }
+    int id = SDLNet_Read32(pack->data + 8);
+    Player* p = Player_get(id);
+    if (p) {
+        p->is_alive = 0;
+    }
+}
+UDPpacket* Network_create_player_spawn_packet(int id, Player* player);
+void Network_decipher_player_spawn_packet(UDPpacket* pack);
+
 UDPpacket* Network_create_projectile_packet(Projectile* proj)
 {
     UDPpacket* pack = SDLNet_AllocPacket(64);

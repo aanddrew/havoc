@@ -11,7 +11,10 @@ enum MESSAGE_TYPE {
     CONNECT_REQUEST,
     DISCONNECT_REQUEST,
 
+    //players
     PLAYER_UPDATE,
+    PLAYER_DIE,
+    PLAYER_SPAWN,
 
     //names
     CHANGE_NAME,
@@ -27,6 +30,11 @@ enum MESSAGE_TYPE {
 UDPpacket* Network_create_player_packet(Player* player);
 void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server);
 void Network_decipher_own_player_packet(UDPpacket* pack, Player* player);
+
+UDPpacket* Network_create_player_die_packet(int id);
+void Network_decipher_player_die_packet(UDPpacket* pack);
+UDPpacket* Network_create_player_spawn_packet(int id, Player* player);
+void Network_decipher_player_spawn_packet(UDPpacket* pack);
 
 //projectiles
 UDPpacket* Network_create_projectile_packet(Projectile* proj);
