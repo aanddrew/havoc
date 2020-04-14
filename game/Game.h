@@ -11,4 +11,6 @@ void Game_deinit();
 
 void Game_update(float dt);
 
+Map* Game_getmap();
+
 #endif

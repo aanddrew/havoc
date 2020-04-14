@@ -1,6 +1,8 @@
 #include "Player.h"
 #include "Vector2d.h"
 
+#include "Game.h"
+
 #include "../global.h"
 
 static Player players[16];
@@ -23,9 +25,13 @@ void Player_init(Player* self)
 
     self->team = -1;
 
+    self->time_dead = 0;
+    self->just_respawned = 0;
+
     self->health = 100.0f;
 
-    self->is_death_checked_by_server = 0;
+    self->just_died = 0;
+    self->just_respawned = 0;
     self->is_alive = 1;
     self->is_connected = 0;
 }
@@ -60,15 +66,24 @@ void Player_deal_damage(Player* self, float dmg)
     self->health -= dmg;
     if (self->health < 0) {
         self->is_alive = 0;
-        self->is_death_checked_by_server = 0;
+        self->just_died = 1;
     }
 }
 
+#define RESPAWN_TIME 2.0f
 void Player_update_all(float dt)
 {
     for (int i = 0; i < size_players; i++) {
         Player* p = Player_get(i);
         if (p && p->is_connected) {
+            if (!p->is_alive) {
+                p->time_dead += dt;
+                if (p->time_dead > RESPAWN_TIME) {
+                    p->is_alive = 1;
+                    Player_respawn(p);
+                }
+            }
+
             Player_update(p, dt);
         }
     }
@@ -122,6 +137,19 @@ void Player_set_name(char* name, int id)
 
     free(player->name);
     player->name = strdup(name);
+}
+
+void Player_respawn(Player* self)
+{
+    int x, y;
+    Map* map = Game_getmap();
+    Map_get_spawn(map, self->team, &x, &y);
+    self->pos.x = x * map->tile_width;
+    self->pos.y = y * map->tile_width;
+    self->is_alive = 1;
+    self->health = 100.0f;
+    self->time_dead = 0.0f;
+    self->just_respawned = 1;
 }
 
 int Player_num_players()

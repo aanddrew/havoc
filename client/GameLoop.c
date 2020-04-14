@@ -149,6 +149,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                 case PLAYER_DIE:
                     Network_decipher_player_die_packet(pack);
                     break;
+                case PLAYER_SPAWN:
+                    Network_decipher_player_spawn_packet(pack);
+                    break;
                 case PROJECTILE_LAUNCH:
                     Network_decipher_projectile_packet(pack, NULL);
                     break;

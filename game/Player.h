@@ -18,7 +18,10 @@ typedef struct {
 
     float health;
 
-    int is_death_checked_by_server;
+    float time_dead; 
+
+    int just_died;
+    int just_respawned;
     int is_alive;
     int is_connected;
 } Player;
@@ -40,6 +43,8 @@ Player* Player_connect_with_id(char* name, int id);
 Player* Player_connect(char* name, int* id);
 void Player_disconnect(int id);
 void Player_set_name(char* name, int id);
+
+void Player_respawn(Player* self);
 
 //gets the number of players in the game
 int Player_num_players();

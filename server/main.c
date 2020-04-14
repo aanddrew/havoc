@@ -57,7 +57,6 @@ int main()
                     break;
                 case PROJECTILE_LAUNCH:
                     if (Player_get(id) && Player_get(id)->is_alive) {
-                        printf("from id %d\n", id);
                         Network_decipher_projectile_packet(pack, NULL);
                     } else {
                         SDLNet_FreePacket(pack);
@@ -68,6 +67,9 @@ int main()
                     SDLNet_FreePacket(pack);
                     pack = Network_create_receive_names_packet();
                     break;
+                default:
+                    SDLNet_FreePacket(pack);
+                    pack = NULL;
                 }
 
                 if (pack) {
@@ -98,13 +100,22 @@ int main()
                     SDL_UnlockMutex(shared_pool.sending_mutex);
 
                     //if the player is dead tell clients
-                    if (!p->is_alive) {
-                        p->is_death_checked_by_server = 1;
+                    if (!p->is_alive && p->just_died) {
+                        p->just_died = 0;
 
                         UDPpacket* deathpack = Network_create_player_die_packet(i);
 
                         SDL_LockMutex(shared_pool.sending_mutex);
                         Vector_push(shared_pool.sending, deathpack);
+                        SDL_UnlockMutex(shared_pool.sending_mutex);
+                    }
+                    //if the player should respawn tell the clients
+                    if (p->just_respawned) {
+                        p->just_respawned = 0;
+                        UDPpacket* spawnpack = Network_create_player_spawn_packet(i, p);
+
+                        SDL_LockMutex(shared_pool.sending_mutex);
+                        Vector_push(shared_pool.sending, spawnpack);
                         SDL_UnlockMutex(shared_pool.sending_mutex);
                     }
                 }

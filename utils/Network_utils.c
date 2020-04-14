@@ -93,8 +93,43 @@ void Network_decipher_player_die_packet(UDPpacket* pack)
         p->is_alive = 0;
     }
 }
-UDPpacket* Network_create_player_spawn_packet(int id, Player* player);
-void Network_decipher_player_spawn_packet(UDPpacket* pack);
+
+UDPpacket* Network_create_player_spawn_packet(int id, Player* player)
+{
+    UDPpacket* pack = SDLNet_AllocPacket(20);
+    SDLNet_Write32(id, pack->data);
+    SDLNet_Write32(PLAYER_SPAWN, pack->data + 4);
+
+    Uint32 x = *((Uint32*)&player->pos.x);
+    Uint32 y = *((Uint32*)&player->pos.y);
+    Uint32 h = *((Uint32*)&player->health);
+    SDLNet_Write32(x, pack->data + 8);
+    SDLNet_Write32(y, pack->data + 12);
+    SDLNet_Write32(h, pack->data + 16);
+    pack->len = 20;
+    return pack;
+}
+
+void Network_decipher_player_spawn_packet(UDPpacket* pack)
+{
+    if (pack->len != 20) {
+        printf("INVALID SPAWN PACKET of length %d\n", pack->len);
+        return;
+    }
+    int id = SDLNet_Read32(pack->data);
+    Uint32 int_x = SDLNet_Read32(pack->data + 8);
+    float x = *((float*)&int_x);
+    Uint32 int_y = SDLNet_Read32(pack->data + 12);
+    float y = *((float*)&int_y);
+
+    Uint32 int_h = SDLNet_Read32(pack->data + 16);
+    float h = *((float*)&int_h);
+
+    Player_get(id)->is_alive = 1;
+    Player_get(id)->pos.x = x;
+    Player_get(id)->pos.y = y;
+    Player_get(id)->health = h;
+}
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj)
 {

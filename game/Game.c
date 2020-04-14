@@ -1,13 +1,22 @@
 #include "Game.h"
 
+static Map map;
+
 void Game_init()
 {
     Proj_init_all();
     Player_init_all();
+    Map_init(&map, "editor/maps/test_map.hm");
 }
 
 void Game_deinit()
 {
+    Map_deinit(&map);
+}
+
+Map* Game_getmap()
+{
+    return &map;
 }
 
 void Game_update(float dt)
@@ -25,8 +34,7 @@ void Game_update(float dt)
                 continue;
 
             if (HitBox_collision(&Proj_get(i)->hitbox, &Player_get(j)->hitbox)) {
-                printf("Checking in server\n");
-                Player_deal_damage(Player_get(j), 100.0f);
+                Player_deal_damage(Player_get(j), 10.0f);
                 Proj_get(i)->is_checked_by_server = 0;
                 Proj_get(i)->is_alive = 0;
             }
@@ -38,7 +46,6 @@ void Game_update(float dt)
     for (int i = 0; i < Player_num_players(); i++) {
         if (Player_get(i) && Player_get(i)->health <= 0) {
             Player_get(i)->is_alive = 0;
-            //respawn player
         }
     }
 }

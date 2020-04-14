@@ -31,27 +31,27 @@ void MapRenderer_deinit()
 void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam)
 {
     SDL_Rect srcrect;
-    srcrect.w = TILE_WIDTH;
-    srcrect.h = TILE_WIDTH;
+    srcrect.w = self->tile_width;
+    srcrect.h = self->tile_width;
 
     SDL_Rect paintrect;
-    paintrect.w = TILE_WIDTH;
-    paintrect.h = TILE_WIDTH;
+    paintrect.w = self->tile_width;
+    paintrect.h = self->tile_width;
 
     SDL_Rect destrect;
-    destrect.w = TILE_WIDTH;
-    destrect.h = TILE_WIDTH;
+    destrect.w = self->tile_width;
+    destrect.h = self->tile_width;
 
     for (int z = 0; z < self->depth; z++) {
         for (int x = 0; x < self->width; x++) {
             for (int y = 0; y < self->height; y++) {
                 Uint16 tile = Map_get_tile(self, x, y, z);
 
-                srcrect.x = (tile % atlas_width) * TILE_WIDTH;
-                srcrect.y = (tile / atlas_width) * TILE_WIDTH;
+                srcrect.x = (tile % atlas_width) * self->tile_width;
+                srcrect.y = (tile / atlas_width) * self->tile_width;
 
-                paintrect.x = x * TILE_WIDTH;
-                paintrect.y = y * TILE_WIDTH;
+                paintrect.x = x * self->tile_width;
+                paintrect.y = y * self->tile_width;
 
                 Camera_transform_rect(cam, &paintrect, &destrect);
                 SDL_RenderCopy(renderer, atlas_texture, &srcrect, &destrect);

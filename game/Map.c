@@ -10,6 +10,7 @@ void Map_init(Map* self, const char* file_name)
         return;
     }
 
+    self->tile_width = 64;
     self->width = 16;
     self->height = 16;
     self->depth = 4;
@@ -53,6 +54,13 @@ Uint16 Map_get_tile(Map* self, int x, int y, int z)
     return self->tiles[(z * self->height * self->width) + x * self->height + y];
 }
 
+void Map_get_spawn(Map* self, int team, int* x, int* y)
+{
+    printf("different team spawns not implemented yet: team %d\n", team);
+    *x = rand() % self->width;
+    *y = rand() % self->height;
+}
+
 void Map_save(Map* self, const char* file_name)
 {
     FILE* file = fopen(file_name, "wb");
@@ -74,6 +82,8 @@ void Map_load(Map* self, const char* file_name)
         printf("Error writing to file: %s\n", file_name);
         return;
     }
+
+    self->tile_width = 64;
     fread(&self->width, 4, 1, file);
     fread(&self->height, 4, 1, file);
     fread(&self->depth, 4, 1, file);
@@ -93,16 +103,16 @@ void Map_load(Map* self, const char* file_name)
 
 void Map_collide_player(Map* self, Player* player)
 {
-    if (player->pos.x >= self->width * 64) {
-        player->pos.x = self->width * 64 - 1;
+    if (player->pos.x >= self->width * self->tile_width) {
+        player->pos.x = self->width * self->tile_width - 1;
         player->vel.x = 0;
     } else if (player->pos.x < 0) {
         player->pos.x = 1;
         player->vel.x = 0;
     }
 
-    if (player->pos.y >= self->height * 64) {
-        player->pos.y = self->height * 64 - 1;
+    if (player->pos.y >= self->height * self->tile_width) {
+        player->pos.y = self->height * self->tile_width - 1;
         player->vel.y = 0;
     } else if (player->pos.y < 0) {
         player->pos.y = 1;
