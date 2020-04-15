@@ -39,6 +39,27 @@ int main()
                 int id = SDLNet_Read32(pack->data);
                 int type = SDLNet_Read32(pack->data + 4);
                 switch (type) {
+                case CONNECT_REQUEST:
+                    printf("reconnection request\n");
+                    if (!Player_get(id)) {
+                        printf("actually reconnecting\n");
+                        Player_reconnect(id);
+                    }
+                        
+                    {
+                        //send their id back to them
+                        UDPpacket* id_packet = SDLNet_AllocPacket(4);
+                        SDLNet_Write32(id, id_packet->data);
+                        id_packet->len = 4;
+                        id_packet->address = pack->address;
+
+                        SDL_LockMutex(shared_pool.server_mutex);
+                        SDLNet_UDP_Send(shared_pool.server, id, id_packet);
+                        SDL_UnlockMutex(shared_pool.server_mutex);
+
+                        SDLNet_FreePacket(id_packet);
+                    }
+                    break;
                 case PLAYER_UPDATE:
                     if (!Player_get(id)) {
                         Player_connect("unknown_player", NULL);

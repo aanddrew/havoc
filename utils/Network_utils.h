@@ -9,7 +9,7 @@
 enum MESSAGE_TYPE {
     //connection
     CONNECT_REQUEST,
-    DISCONNECT_REQUEST,
+    DISCONNECT_ACKNOWLEDGE,
 
     //players
     PLAYER_UPDATE,
@@ -51,5 +51,9 @@ UDPpacket* Network_create_get_names_packet();
 void Network_decipher_get_names_packet(UDPpacket* pack);
 UDPpacket* Network_create_receive_names_packet();
 void Network_decipher_receive_names_packet(UDPpacket* pack);
+
+//server stuff
+UDPpacket* Network_create_disconnect_packet();
+void Network_decipher_disconnect_packet(UDPpacket* pack);
 
 #endif

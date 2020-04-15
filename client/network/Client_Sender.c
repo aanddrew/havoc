@@ -25,6 +25,10 @@ static int thread_fun(void* arg)
     pool_t* pool = (pool_t*)arg;
 
     while (running) {
+        SDL_LockMutex(pool->running_mutex);
+        running = pool->running;
+        SDL_UnlockMutex(pool->running_mutex);
+
         SDL_LockMutex(pool->sending_mutex);
         while (pool->sending->num > 0) {
             UDPpacket* pack = Vector_pop(pool->sending);
@@ -35,11 +39,8 @@ static int thread_fun(void* arg)
             SDLNet_FreePacket(pack);
         }
         SDL_UnlockMutex(pool->sending_mutex);
-
-        SDL_LockMutex(pool->running_mutex);
-        running = pool->running;
-        SDL_UnlockMutex(pool->running_mutex);
     }
+    printf("Client_Sender stopped\n");
     return 0;
 }
 

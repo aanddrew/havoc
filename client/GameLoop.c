@@ -29,6 +29,8 @@ enum PAUSEMENU_ITEMS {
 
 int Game_Loop(Window* window, const char* server_hostname, const char* wish_name)
 {
+    int ret = EXIT_PROGRAM;
+
     /* Initialize Network */
     int online = 0;
     Network_init();
@@ -37,6 +39,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     if (!online) {
         printf("You are offline\n");
         Network_deinit();
+    }
+    else {
+        printf("Successfully connected\n");
     }
 
     int our_id = 0;
@@ -205,8 +210,8 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         if (is_paused) {
             int btn = pause_menu.selected_button;
             if (btn == pausemenu_ids[PAUSEMENU_DISCONNECT_BTN]) {
-                //disconnect
-                return MAIN_MENU;
+                done = 1;
+                ret = MAIN_MENU;
             }
         }
 
@@ -250,5 +255,5 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     Hud_deinit();
     GameRenderer_deinit();
     MapRenderer_deinit();
-    return 0;
+    return ret;
 }

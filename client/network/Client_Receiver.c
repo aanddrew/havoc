@@ -66,6 +66,7 @@ static int thread_fun(void* arg)
         running = pool->running;
         SDL_UnlockMutex(pool->running_mutex);
     }
+    printf("Client_Receiver stopped\n");
     return 0;
 }
 

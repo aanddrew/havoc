@@ -19,6 +19,8 @@ void Network_init()
     Pool_init();
     Client_Receiver_init();
     Client_Sender_init();
+    online = 0;
+    our_id = -1;
 }
 
 void Network_deinit()
@@ -27,6 +29,8 @@ void Network_deinit()
     Client_Receiver_deinit();
     Client_Sender_deinit();
     SDLNet_Quit();
+    online = 0;
+    our_id = -1;
 }
 
 int Network_connect(const char* hostname)
@@ -62,13 +66,12 @@ int Network_connect(const char* hostname)
             our_id = SDLNet_Read32(pack->data);
             printf("Server gives us id: %d\n", our_id);
             break;
-        } else {
-            //printf("No response\n");
-        }
+        } 
         SDL_Delay(100);
         num_tries++;
     }
     if (num_tries == max_tries) {
+        printf("No response\n");
         return 0;
     }
     SDLNet_FreePacket(pack);
@@ -89,12 +92,6 @@ void Network_disconnect()
 
     Client_Sender_stop();
     Client_Receiver_stop();
-
-    //send a disconnect request
-    UDPpacket* pack = SDLNet_AllocPacket(4);
-    SDLNet_Write32(DISCONNECT_REQUEST, pack->data);
-    pack->len = 4;
-    SDLNet_UDP_Send(shared_pool.server, -1, pack);
 
     //close the connection
     SDLNet_UDP_Close(shared_pool.server);

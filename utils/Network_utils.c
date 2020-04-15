@@ -306,3 +306,21 @@ void Network_decipher_receive_names_packet(UDPpacket* pack)
         Player_set_name(name, id);
     }
 }
+
+UDPpacket* Network_create_disconnect_packet() {
+    UDPpacket* pack = SDLNet_AllocPacket(4);
+    SDLNet_Write32(DISCONNECT_REQUEST, pack->data);
+    pack->len = 4;
+    return pack;
+}
+void Network_decipher_disconnect_packet(UDPpacket* pack) {
+    //8 because the id of the player will now be prepended to this packet
+    if (pack->len != 8) {
+        printf("INVALID DISCONNECT PACKET OF LENGTH %d\n", pack->len);
+        return;
+    }
+
+    int id = SDLNet_Read32(pack->data);
+    Player_disconnect(id);
+}
+

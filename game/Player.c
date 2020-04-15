@@ -125,8 +125,20 @@ Player* Player_connect(char* name, int* id)
 void Player_disconnect(int id)
 {
     Player* player = Player_get(id);
-    player->is_connected = 0;
-    free(player->name);
+    if (player) {
+        player->is_connected = 0;
+        free(player->name);
+    }
+}
+
+void Player_reconnect(int id) 
+{
+    if (id < 0 || id >= size_players) {
+        return;
+    }
+    else {
+        players[id].is_connected = 1;
+    }
 }
 
 void Player_set_name(char* name, int id)
