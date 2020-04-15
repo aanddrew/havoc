@@ -20,6 +20,13 @@
 
 #include "../utils/Network_utils.h"
 
+#include "States.h"
+
+enum PAUSEMENU_ITEMS {
+    PAUSEMENU_DISCONNECT_BTN,
+    PAUSEMENU_NUM_ITEMS,
+};
+
 int Game_Loop(Window* window, const char* server_hostname, const char* wish_name)
 {
     /* Initialize Network */
@@ -35,6 +42,23 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     int our_id = 0;
     if (online) {
         our_id = (int)Network_get_our_id();
+    }
+
+    /* Pause Menu */
+    Menu pause_menu;
+    Menu_init(&pause_menu);
+    
+    int pausemenu_ids[PAUSEMENU_NUM_ITEMS];
+
+    {
+        Button disconnect_btn;
+        Button_init_text(&disconnect_btn, "Disconnect", 16);
+        disconnect_btn.rect.x = -disconnect_btn.rect.w / 2;
+        disconnect_btn.rect.y = -disconnect_btn.rect.h / 2;
+        disconnect_btn.centerx = 1;
+        disconnect_btn.centery = 1;
+
+        pausemenu_ids[PAUSEMENU_DISCONNECT_BTN] = Menu_add_button(&pause_menu, disconnect_btn);
     }
 
     /* Initialize Game */
@@ -66,6 +90,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         current_time = SDL_GetTicks();
 
         while (SDL_PollEvent(&e)) {
+            if (is_paused) {
+                Menu_pass_event(&pause_menu, window->renderer, &e);
+            }
             switch (e.type) {
             case SDL_KEYDOWN:
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
@@ -175,6 +202,14 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
             Controller_unpress_all(&c);
         }
 
+        if (is_paused) {
+            int btn = pause_menu.selected_button;
+            if (btn == pausemenu_ids[PAUSEMENU_DISCONNECT_BTN]) {
+                //disconnect
+                return MAIN_MENU;
+            }
+        }
+
         Controller_update(&c, &cam);
         Game_update(dt_float);
 
@@ -184,6 +219,17 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         Map_render(Game_getmap(), window->renderer, &cam);
         GameRenderer_render(window->renderer, &cam);
         Hud_render(window->renderer, our_player);
+        if (is_paused) {
+            SDL_Rect bg;
+            bg.x = 0;
+            bg.y = 0;
+            SDL_GetRendererOutputSize(window->renderer, &bg.w, &bg.h);
+
+            SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 75);
+            SDL_RenderFillRect(window->renderer, &bg);
+
+            Menu_render(&pause_menu, window->renderer);
+        }
         Window_present(window);
     }
 

@@ -21,20 +21,14 @@
 
 #include "../utils/Network_utils.h"
 
+#include "States.h"
+
 #ifdef WIN32
 #define strdup _strdup
 #endif
 
 char server_hostname[512];
 char wish_name[64];
-
-enum MENU_RET {
-    EXIT_PROGRAM,
-    MAIN_MENU,
-    CONNECT,
-    GAME,
-    OPTIONS,
-};
 
 int MainMenu_Loop(Window* window);
 int ConnectMenu_Loop(Window* window);
