@@ -5,6 +5,12 @@
 #include "Vector2d.h"
 #include "HitBox.h"
 
+//
+// Structured very similarly to the Projectile system, where all the players
+// are stored in static variables inside of Player.c, and we can interact
+// with it through some methods defined here
+//
+
 typedef struct {
     Vector2d pos;
     Vector2d vel;
@@ -39,6 +45,7 @@ void Player_deal_damage(Player* self, float dmg);
 
 void Player_update_all(float dt);
 
+//this is where you can acess the static Player array from outside the class
 Player* Player_connect_with_id(char* name, int id);
 Player* Player_connect(char* name, int* id);
 void Player_disconnect(int id);

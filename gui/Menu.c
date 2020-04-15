@@ -1,7 +1,8 @@
 #include "Menu.h"
 
 //only one textbox can be active across all menus
-TextBox* current_textbox = NULL;
+//accessed through Menu_get_selected_textbox
+static TextBox* current_textbox = NULL;
 
 void Menu_init(Menu* self)
 {

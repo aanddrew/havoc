@@ -27,6 +27,8 @@ Window* Window_init()
         1280,
         720,
         SDL_WINDOW_RESIZABLE);
+
+    //change these to disable/enable vsync
     int win_flags = SDL_RENDERER_PRESENTVSYNC;
     //int win_flags = 0;
     window->renderer = SDL_CreateRenderer(window->window, -1, win_flags);

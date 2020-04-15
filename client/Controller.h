@@ -36,16 +36,17 @@ typedef struct {
 
 void Controller_init(Controller* self);
 
+//pass events into this object through these methods
 void Controller_keydown(Controller* self, int key);
 void Controller_keyup(Controller* self, int key);
-
 void Controller_mousebuttondown(Controller*self, SDL_MouseButtonEvent e);
-
 void Controller_mousewheel(Controller*self, SDL_MouseWheelEvent e);
 
 void Controller_unpress_all(Controller* self);
 
 //does not actually update the player, just changes the look vector and velocity
+//Player_update should still be called on the player object which this controller
+//has access to
 void Controller_update(Controller* self, const Camera* cam);
 
 #endif

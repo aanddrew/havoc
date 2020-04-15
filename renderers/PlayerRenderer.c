@@ -30,6 +30,7 @@ void Player_render_all(SDL_Renderer* renderer, const Camera* cam)
     for (int i = 0; i < Player_num_players(); i++) {
         Player* p = Player_get(i);
         if (p && p->is_alive) {
+            //render sprite
             Player_update_sprite(p);
             Dolly_render(&wizard, renderer, cam);
             float name_x, name_y;

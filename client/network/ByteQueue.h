@@ -3,6 +3,12 @@
 
 #include <SDL2/SDL.h>
 
+//
+// THIS CODE IS CURRENTLY UNUSED, I AM LEAVING IT IN BECAUSE IT 
+// IS HELPFUL FOR PARSING TCP MESSAGES AND I WOULD LIKE TO NOT HAVE TO
+// RE-WRITE THIS CODE IF I NEED TO SEND TCP MESSAGES OVER THE NETWORK
+//
+
 //in this model the tail is the most recent piece of data
 //the head is the oldest piece of data
 typedef struct {
