@@ -13,10 +13,7 @@
 
 #include "Controller.h"
 
-#include "network/Client_Pool.h"
-#include "network/Client_Receiver.h"
-#include "network/Client_Sender.h"
-#include "network/Network.h"
+#include "Network.h"
 
 #include "../utils/Network_utils.h"
 
@@ -32,27 +29,34 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     int ret = EXIT_PROGRAM;
 
     /* Initialize Network */
-    int online = 0;
+    printf("Attempting to join with name: %s\n", wish_name);
     Network_init();
-    online = Network_connect(server_hostname);
-    printf("Joining with name: %s\n", wish_name);
-    if (!online) {
-        printf("You are offline\n");
-        Network_deinit();
-    }
-    else {
-        printf("Successfully connected\n");
-    }
+    Network_connect(server_hostname);
 
-    int our_id = 0;
-    if (online) {
-        our_id = (int)Network_get_our_id();
+    #define TIMEOUT 2000
+    unsigned int start_connect_time = SDL_GetTicks();
+    while(!Network_online()) {
+        if (Network_error()) {
+            printf("ERROR CONNECTING TO SERVER\n");
+            Network_disconnect();
+            Network_deinit();
+            return MAIN_MENU;
+        }
+        if (SDL_GetTicks() > start_connect_time + TIMEOUT) {
+            printf("waited too long to connect\n");
+            Network_disconnect();
+            Network_deinit();
+            return MAIN_MENU;
+        }
     }
+    printf("Successfully connected!\n");
+
+    int our_id = (int)Network_get_our_id();
 
     /* Pause Menu */
     Menu pause_menu;
     Menu_init(&pause_menu);
-    
+
     int pausemenu_ids[PAUSEMENU_NUM_ITEMS];
 
     {
@@ -85,7 +89,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     c.cam = &cam;
 
     int current_time = SDL_GetTicks();
-    int last_name_request_time = SDL_GetTicks();
+    //int last_name_request_time = SDL_GetTicks();
     int dt = 0;
     SDL_Event e;
     int done = 0;
@@ -130,73 +134,73 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
             }
         }
 
-        if (online) {
-            //
-            //SEND our information to the server
-            //
+        //
+        //SEND our information to the server
+        //
 
-            UDPpacket* pos_pack = Network_create_player_packet(our_player);
-            Network_send_packet(pos_pack);
+        /*
+        MyPacket* pos_pack = Network_create_player_packet(our_player);
+        Network_send_packet(pos_pack);
 
-            if (strcmp(our_player->name, wish_name)) {
-                UDPpacket* namepack = Network_create_change_name_packet(wish_name);
-                Network_send_packet(namepack);
+        if (strcmp(our_player->name, wish_name)) {
+            UDPpacket* namepack = Network_create_change_name_packet(wish_name);
+            Network_send_packet(namepack);
+        }
+
+        if (current_time - last_name_request_time >= 1000) {
+            UDPpacket* namerequestpack = Network_create_get_names_packet();
+            Network_send_packet(namerequestpack);
+        }
+
+        //
+        // Receive Information from the server
+        //
+        //
+        */
+
+        Vector* incoming = Network_get_received();
+        Vector_reverse(incoming);
+        while (incoming->num > 0) {
+            ENetPacket* pack = Vector_pop(incoming);
+            int id = *((int*) pack->data);
+            int message_type = *((int*) pack->data + 4);
+
+            //add new player to the game
+            if (id != -1 && !Player_get(id)) {
+                Player_connect_with_id("new player", id);
             }
 
-            if (current_time - last_name_request_time >= 1000) {
-                //printf("REQUESTING NAMES\n");
-                UDPpacket* namerequestpack = Network_create_get_names_packet();
-                Network_send_packet(namerequestpack);
-            }
-
-            //
-            // Receive Information from the server
-            //
-
-            Vector* incoming = Client_Receiver_get_received();
-            Vector_reverse(incoming);
-            while (incoming->num > 0) {
-                UDPpacket* pack = Vector_pop(incoming);
-                Uint32 id = SDLNet_Read32(pack->data);
-                Uint32 message_type = SDLNet_Read32(pack->data + 4);
-
-                //add new player to the game
-                if (id != (Uint32)-1 && !Player_get(id)) {
-                    Player_connect_with_id("new player", id);
+            //all other events
+            switch (message_type) {
+            case PLAYER_UPDATE:
+                if (id != our_id) {
+                    Network_decipher_player_packet(pack, id, 0);
+                } else {
+                    //Network_decipher_own_player_packet(pack, Player_get(id));
                 }
 
-                //all other events
-                switch (message_type) {
-                case PLAYER_UPDATE:
-                    if (id != (Uint32)our_id) {
-                        Network_decipher_player_packet(pack, Player_get(id), 0);
-                    } else {
-                        Network_decipher_own_player_packet(pack, Player_get(id));
-                    }
-
-                    break;
-                case PLAYER_DIE:
-                    Network_decipher_player_die_packet(pack);
-                    break;
-                case PLAYER_SPAWN:
-                    Network_decipher_player_spawn_packet(pack);
-                    break;
-                case PROJECTILE_LAUNCH:
-                    Network_decipher_projectile_packet(pack, NULL);
-                    break;
-                case PROJECTILE_DEATH:
-                    Network_decipher_projectile_death_packet(pack);
-                    break;
-                case CHANGE_NAME:
-                    Network_decipher_change_name_packet(pack);
-                    break;
-                case RECEIVE_NAMES:
-                    Network_decipher_receive_names_packet(pack);
-                    last_name_request_time = current_time;
-                    break;
-                }
-
-                SDLNet_FreePacket(pack);
+                break;
+            /*
+            case PLAYER_DIE:
+                Network_decipher_player_die_packet(pack);
+                break;
+            case PLAYER_SPAWN:
+                Network_decipher_player_spawn_packet(pack);
+                break;
+            case PROJECTILE_LAUNCH:
+                Network_decipher_projectile_packet(pack, NULL);
+                break;
+            case PROJECTILE_DEATH:
+                Network_decipher_projectile_death_packet(pack);
+                break;
+            case CHANGE_NAME:
+                Network_decipher_change_name_packet(pack);
+                break;
+            case RECEIVE_NAMES:
+                Network_decipher_receive_names_packet(pack);
+                last_name_request_time = current_time;
+                break;
+            */
             }
         }
 
@@ -244,14 +248,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
 
     Proj_cleanup_all_sprites();
 
-    if (online) {
-        SDL_LockMutex(shared_pool.running_mutex);
-        shared_pool.running = 0;
-        SDL_UnlockMutex(shared_pool.running_mutex);
+    Network_disconnect();
+    Network_deinit();
 
-        Network_disconnect();
-        Network_deinit();
-    }
     Hud_deinit();
     GameRenderer_deinit();
     MapRenderer_deinit();

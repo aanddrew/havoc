@@ -1,5 +1,5 @@
 include common.make
-LFLAGS=-lSDL2 -lSDL_net -lSDL2_ttf -lSDL2_image -lm 
+LFLAGS=-lSDL2 -lenet -lSDL2_ttf -lSDL2_image -lm 
 SERVER_LFLAGS=-lSDL2 -lSDL_net -lm
 
 CLIENT_OUT=havoc
@@ -13,7 +13,7 @@ client:
 	+$(MAKE) -C game
 	+$(MAKE) -C utils
 	+$(MAKE) -C SDL_FontCache
-	$(CC) $(CFLAGS) $(LFLAGS) obj/client/*.o obj/client/*/*.o obj/renderers/*.o obj/gui/*.o obj/game/*.o obj/utils/*.o obj/SDL_FontCache/*.o -o $(CLIENT_OUT)
+	$(CC) $(CFLAGS) $(LFLAGS) obj/client/*.o obj/renderers/*.o obj/gui/*.o obj/game/*.o obj/utils/*.o obj/SDL_FontCache/*.o -o $(CLIENT_OUT)
 
 server:
 	+$(MAKE) -C server 

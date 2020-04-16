@@ -1,170 +1,163 @@
+#include <SDL2/SDL.h>
+#include <enet/enet.h>
 #include <stdio.h>
 
-#include <SDL2/SDL_net.h>
-
-#include "../utils/Vector.h"
-
-#include "Server_Pool.h"
-#include "Server_Receiver.h"
-#include "Server_Sender.h"
-
 #include "../game/Game.h"
-#include "../game/Player.h"
-#include "../game/Projectile.h"
 #include "../utils/Network_utils.h"
 
-#define HAVOC_SERVER
+ENetPeer* peers[16];
 
-static int delta = 10; //10 ms between update times
+ENetHost* server = NULL;
+
+void print_packet(const ENetPacket* pack);
+void handle_packet(int id, ENetPacket* pack);
+
+int game_fun(void* args);
 
 int main()
 {
-    SDL_Init(0);
-    SDLNet_Init();
-    Pool_init();
+    if (SDL_Init(0)) {
+        printf("Unable to initialize SDL: %s\n", SDL_GetError());
+    }
+    if (enet_initialize() != 0) {
+        printf("An error occurred while initializing ENet.\n");
+        return EXIT_FAILURE;
+    }
+    atexit(enet_deinitialize);
+    //done initializing enet
+
+    //initialize our global variables
+    for(int i = 0; i < 16; i++) {
+        peers[i] = NULL;
+    }
+
+    ENetAddress address;
+    ENetHost* server = NULL;
+
+    address.host = ENET_HOST_ANY;
+    address.port = 23432;
+
+    server = enet_host_create(&address, 512, 2, 0, 0);
+
+    if (!server) {
+        printf("ERROR creating ENet host\n");
+        return EXIT_FAILURE;
+    }
+
+    ENetEvent event;
+    while (1) {
+        int val = enet_host_service(server, &event, 10);
+        if (val > 0) {
+            //HANDLE SERVER RECEIVING PACKETS
+            switch (event.type) {
+            case ENET_EVENT_TYPE_CONNECT: {
+                int id;
+                Player_connect("default", &id);
+                if (id < 0) {
+                    printf("Client tried to connect, but server was full!\n");
+                    break;
+                }
+
+                peers[id] = event.peer;
+
+                event.peer->data = malloc(sizeof(int));
+                *((int*)event.peer->data) = id;
+
+                //send them a packet with their id
+                int id_data[2];
+                id_data[0] = GIVE_ID;
+                id_data[1] = id;
+                ENetPacket* id_pack = enet_packet_create(id_data, 8, ENET_PACKET_FLAG_RELIABLE);
+                enet_peer_send(event.peer, 0, id_pack);
+
+                printf("New client %d connected!\n", id);
+            } break;
+            case ENET_EVENT_TYPE_RECEIVE: {
+                int id = *((int*)event.peer->data);
+                                        
+                printf("Packet received from client %d: ", id);
+                print_packet(event.packet);
+
+                enet_uint8* buf = malloc(event.packet->dataLength);
+                for(int i = 0; i < (int) event.packet->dataLength; i++) {
+                    buf[i] = event.packet->data[i];
+                }
+                handle_packet(id, event.packet);
+
+                /* Clean up the packet now that we're done using it. */
+                enet_packet_destroy(event.packet);
+            } break;
+            case ENET_EVENT_TYPE_DISCONNECT: {
+                int id = *((int*)event.peer->data);
+
+                Player_disconnect(id);
+
+                printf("client %d disconnected.\n", id);
+                free(event.peer->data);
+            } break;
+            default:
+                break;
+            }
+        }
+
+        /*
+        //SEND PACKETS OUT TO CLIENTS
+        for(int i = 0; i < 16; i++) {
+            if (peers[i] == NULL) continue;
+
+            const char* message = "hello, client!";
+            ENetPacket *packet = enet_packet_create(message, strlen(message) + 1, ENET_PACKET_FLAG_RELIABLE);
+            enet_peer_send(peers[i], 0, packet);
+        }
+        */
+    }
+
+    enet_host_destroy(server);
+    SDL_Quit();
+}
+
+void print_packet(const ENetPacket* pack)
+{
+    for (int i = 0; i < (int)pack->dataLength; i++) {
+        if (i != 0 && i % 4 == 0)
+            printf(" ");
+        printf("%02x", pack->data[i]);
+    }
+    printf("\n");
+}
+
+void handle_packet(int id, ENetPacket* pack) {
+    if (pack->dataLength < 4) {
+        return;
+    }
+
+    int type = *((int*) pack->data);
+    
+    switch(type) {
+        case PLAYER_UPDATE:
+            Network_decipher_player_packet(pack, id, 1);
+            break;
+    }
+    enet_packet_destroy(pack);
+}
+
+int game_fun(void* args) {
+    if (args) {
+        printf("Error, game fun should not take args\n");
+    }
 
     Game_init();
 
-    Server_Receiver_run(23432);
-    Server_Sender_run();
-
+    int done = 0;
     int last_time = SDL_GetTicks();
-    while (1) {
-        int current_time = SDL_GetTicks();
-        //update loop
-        while (current_time > last_time + delta) {
-            Vector* received = Server_Receiver_get_received();
-            while (received->num > 0) {
-                UDPpacket* pack = Vector_pop(received);
-                int id = SDLNet_Read32(pack->data);
-                int type = SDLNet_Read32(pack->data + 4);
-                switch (type) {
-                case CONNECT_REQUEST:
-                    printf("reconnection request\n");
-                    if (!Player_get(id)) {
-                        printf("actually reconnecting\n");
-                        Player_reconnect(id);
-                    }
-                        
-                    {
-                        //send their id back to them
-                        UDPpacket* id_packet = SDLNet_AllocPacket(4);
-                        SDLNet_Write32(id, id_packet->data);
-                        id_packet->len = 4;
-                        id_packet->address = pack->address;
-
-                        SDL_LockMutex(shared_pool.server_mutex);
-                        SDLNet_UDP_Send(shared_pool.server, id, id_packet);
-                        SDL_UnlockMutex(shared_pool.server_mutex);
-
-                        SDLNet_FreePacket(id_packet);
-                    }
-                    break;
-                case PLAYER_UPDATE:
-                    if (!Player_get(id)) {
-                        Player_connect("unknown_player", NULL);
-                        Player_get(id)->team = id;
-                    }
-                    if (Player_get(id)->is_alive) {
-                        Network_decipher_player_packet(pack, Player_get(id), 1);
-                    }
-                    SDLNet_FreePacket(pack);
-                    pack = NULL;
-                    break;
-                case CHANGE_NAME:
-                    Network_decipher_change_name_packet(pack);
-                    SDLNet_FreePacket(pack);
-                    pack = NULL;
-                    break;
-                case PROJECTILE_LAUNCH:
-                    if (Player_get(id) && Player_get(id)->is_alive) {
-                        Network_decipher_projectile_packet(pack, NULL);
-                    } else {
-                        SDLNet_FreePacket(pack);
-                        pack = NULL;
-                    }
-                    break;
-                case GET_NAMES:
-                    SDLNet_FreePacket(pack);
-                    pack = Network_create_receive_names_packet();
-                    break;
-                default:
-                    SDLNet_FreePacket(pack);
-                    pack = NULL;
-                    break;
-                }
-
-                if (pack) {
-                    SDL_LockMutex(shared_pool.sending_mutex);
-                    Vector_push(shared_pool.sending, pack);
-                    SDL_UnlockMutex(shared_pool.sending_mutex);
-                }
-            }
-
-            Game_update(((float)delta) / 1000.0f);
-
-            //send player information back to the clients
-            for (int i = 0; i < Player_num_players(); i++) {
-                Player* p = Player_get(i);
-                if (p) {
-                    //send position velocity health to clients
-                    UDPpacket* pack = Network_create_player_packet(p);
-                    UDPpacket* copy = SDLNet_AllocPacket(pack->maxlen + 4);
-                    SDLNet_Write32(i, copy->data);
-                    for (int i = 0; i < pack->len; i++) {
-                        copy->data[i + 4] = pack->data[i];
-                    }
-                    copy->len = pack->len + 4;
-                    SDLNet_FreePacket(pack);
-
-                    SDL_LockMutex(shared_pool.sending_mutex);
-                    Vector_push(shared_pool.sending, copy);
-                    SDL_UnlockMutex(shared_pool.sending_mutex);
-
-                    //if the player is dead tell clients
-                    if (!p->is_alive && p->just_died) {
-                        p->just_died = 0;
-
-                        UDPpacket* deathpack = Network_create_player_die_packet(i);
-
-                        SDL_LockMutex(shared_pool.sending_mutex);
-                        Vector_push(shared_pool.sending, deathpack);
-                        SDL_UnlockMutex(shared_pool.sending_mutex);
-                    }
-                    //if the player should respawn tell the clients
-                    if (p->just_respawned) {
-                        p->just_respawned = 0;
-                        UDPpacket* spawnpack = Network_create_player_spawn_packet(i, p);
-
-                        SDL_LockMutex(shared_pool.sending_mutex);
-                        Vector_push(shared_pool.sending, spawnpack);
-                        SDL_UnlockMutex(shared_pool.sending_mutex);
-                    }
-                }
-            }
-
-            //send information about projectiles dying
-            for (int i = 0; i < Proj_num_projectiles(); i++) {
-                if (Proj_server_should_kill(i)) {
-                    Proj_server_do_kill(i);
-                    UDPpacket* pack = Network_create_projectile_death_packet(i);
-
-                    SDL_LockMutex(shared_pool.sending_mutex);
-                    Vector_push(shared_pool.sending, pack);
-                    SDL_UnlockMutex(shared_pool.sending_mutex);
-                }
-            }
-
-            last_time += delta;
-        }
+    while(!done) {
+        last_time = SDL_GetTicks();
+        int dt_ms = SDL_GetTicks() - last_time;
+        float dt = ((float) dt_ms) / 1000.0f;
+        Game_update(dt);
     }
 
-    Server_Receiver_stop();
-    Server_Sender_stop();
-
-    Pool_deinit();
-
-    SDLNet_Quit();
-    SDL_Quit();
+    Game_deinit();
+    
     return 0;
 }

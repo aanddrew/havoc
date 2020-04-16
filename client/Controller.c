@@ -2,7 +2,7 @@
 
 #include "../game/Projectile.h"
 #include "../utils/Network_utils.h"
-#include "network/Network.h"
+#include "Network.h"
 
 static const int default_binds[] = {
     SDLK_w,
@@ -62,8 +62,12 @@ void Controller_mousebuttondown(Controller* self, SDL_MouseButtonEvent e)
         proj.pos = self->player->pos;
         proj.dir = self->player->look;
 
+        printf("Proj initialized but not sent over network: %p\n", &proj);
+
+        /*
         UDPpacket* proj_pack = Network_create_projectile_packet(&proj);
         Network_send_packet(proj_pack);
+        */
     }
 }
 

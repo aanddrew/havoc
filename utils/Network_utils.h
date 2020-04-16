@@ -1,15 +1,15 @@
 #ifndef NETWORK_UTILS_H
 #define NETWORK_UTILS_H
 
-#include <SDL2/SDL_net.h>
+#include <enet/enet.h>
 
 #include "../game/Player.h"
 #include "../game/Projectile.h"
 
 enum MESSAGE_TYPE {
-    //connection
-    CONNECT_REQUEST,
-    DISCONNECT_ACKNOWLEDGE,
+    //server stuff
+    CONNECTION,
+    GIVE_ID,
 
     //players
     PLAYER_UPDATE,
@@ -26,10 +26,12 @@ enum MESSAGE_TYPE {
     PROJECTILE_DEATH,
 };
 
-void print_packet(UDPpacket* pack);
+//void print_packet(UDPpacket* pack);
 
 //players
-UDPpacket* Network_create_player_packet(Player* player);
+ENetPacket* Network_create_player_packet(Player* player);
+void Network_decipher_player_packet(ENetPacket* pack, int id, int server);
+/*
 void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server);
 void Network_decipher_own_player_packet(UDPpacket* pack, Player* player);
 
@@ -55,5 +57,6 @@ void Network_decipher_receive_names_packet(UDPpacket* pack);
 //server stuff
 UDPpacket* Network_create_disconnect_packet();
 void Network_decipher_disconnect_packet(UDPpacket* pack);
+*/
 
 #endif

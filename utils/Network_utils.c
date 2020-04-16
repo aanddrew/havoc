@@ -1,86 +1,66 @@
 #include "Network_utils.h"
 
-void print_packet(UDPpacket* pack)
+#include <enet/enet.h>
+
+ENetPacket* Network_create_player_packet(Player* player)
 {
-    printf("Printing packet %p\n", pack);
-    for (int i = 0; i < pack->len; i++) {
-        if (i % 4 == 0)
-            printf("\n");
-        printf("%x ", (int)pack->data[i]);
-    }
-}
+    enet_uint8 data[32];
+    *((int*)data) = PLAYER_UPDATE;
 
-UDPpacket* Network_create_player_packet(Player* player)
-{
-    UDPpacket* pack = SDLNet_AllocPacket(64);
-    //write message type
-    SDLNet_Write32(PLAYER_UPDATE, pack->data);
-    //write position
-    Uint32 my_x = *((int*)&(player->pos.x));
-    Uint32 my_y = *((int*)&(player->pos.y));
-    SDLNet_Write32(my_x, pack->data + 4);
-    SDLNet_Write32(my_y, pack->data + 8);
+    float* float_arr = (float*) data + 4;
+    float_arr[0] = player->pos.x;
+    float_arr[1] = player->pos.y;
 
-    //write velocity
-    Uint32 my_vel_x = *((int*)&(player->vel.x));
-    Uint32 my_vel_y = *((int*)&(player->vel.y));
-    SDLNet_Write32(my_vel_x, pack->data + 12);
-    SDLNet_Write32(my_vel_y, pack->data + 16);
+    float_arr[2] = player->vel.x;
+    float_arr[3] = player->vel.y;
 
-    //write look vector
-    Uint32 my_look_x = *((int*)&(player->look.x));
-    Uint32 my_look_y = *((int*)&(player->look.y));
-    SDLNet_Write32(my_look_x, pack->data + 20);
-    SDLNet_Write32(my_look_y, pack->data + 24);
+    float_arr[4] = player->look.x;
+    float_arr[5] = player->look.y;
 
-    SDLNet_Write32(*((Uint32*)&player->health), pack->data + 28);
+    float_arr[6] = player->health;
 
-    pack->len = 32;
-
+    ENetPacket* pack = enet_packet_create(data, 32, 0);
     return pack;
 }
 
-void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server)
+void Network_decipher_player_packet(ENetPacket* pack, int id, int server)
 {
-    if (pack->len != 36) {
-        printf("INVALID PLAYER PACKET, length of %d\n", pack->len);
+    if (pack->dataLength != 36) {
+        printf("INVALID PLAYER PACKET, length of %lu\n", pack->dataLength);
         return;
     }
+    Player* player = Player_get(id);
+    if (!player) return;
 
-    //same order as it was written in
-    Uint32 x = SDLNet_Read32(pack->data + 8);
-    Uint32 y = SDLNet_Read32(pack->data + 12);
-    player->pos.x = *((float*)&x);
-    player->pos.y = *((float*)&y);
+    float* float_arr = (float*) pack->data + 4;
 
-    Uint32 vel_x = SDLNet_Read32(pack->data + 16);
-    Uint32 vel_y = SDLNet_Read32(pack->data + 20);
-    player->vel.x = *((float*)&vel_x);
-    player->vel.y = *((float*)&vel_y);
+    player->pos.x = float_arr[0];
+    player->pos.y =  float_arr[1];
 
-    Uint32 look_x = SDLNet_Read32(pack->data + 24);
-    Uint32 look_y = SDLNet_Read32(pack->data + 28);
-    player->look.x = *((float*)&look_x);
-    player->look.y = *((float*)&look_y);
+    player->vel.x = float_arr[2];
+    player->vel.y = float_arr[3];
+    
+    player->look.x = float_arr[4];
+    player->look.y = float_arr[5];
 
     if (!server) {
-        Uint32 health = SDLNet_Read32(pack->data + 32);
-        player->health = *((float*)&health);
+        player->health = float_arr[6];
     }
 }
 
 //we only care about receiving health from the server right now
-void Network_decipher_own_player_packet(UDPpacket* pack, Player* player)
+void Network_decipher_own_player_packet(ENetPacket* pack, int id)
 {
-    if (pack->len != 36) {
-        printf("INVALID PLAYER PACKET, length of %d\n", pack->len);
+    if (pack->dataLength != 36) {
+        printf("INVALID PLAYER PACKET, length of %lu\n", pack->dataLength);
         return;
     }
 
-    Uint32 health = SDLNet_Read32(pack->data + 32);
-    player->health = *((float*)&health);
+    Player* player = Player_get(id);
+    player->health = ((float*) pack->data)[6];
 }
 
+/*
 UDPpacket* Network_create_player_die_packet(int id)
 {
     UDPpacket* pack = SDLNet_AllocPacket(12);
@@ -254,11 +234,9 @@ UDPpacket* Network_create_get_names_packet()
     return pack;
 }
 
-/*
 void Network_decipher_get_names_packet(UDPpacket* pack) {
     
 }
-*/
 
 UDPpacket* Network_create_receive_names_packet()
 {
@@ -306,21 +284,4 @@ void Network_decipher_receive_names_packet(UDPpacket* pack)
         Player_set_name(name, id);
     }
 }
-
-UDPpacket* Network_create_disconnect_packet() {
-    UDPpacket* pack = SDLNet_AllocPacket(4);
-    SDLNet_Write32(DISCONNECT_REQUEST, pack->data);
-    pack->len = 4;
-    return pack;
-}
-void Network_decipher_disconnect_packet(UDPpacket* pack) {
-    //8 because the id of the player will now be prepended to this packet
-    if (pack->len != 8) {
-        printf("INVALID DISCONNECT PACKET OF LENGTH %d\n", pack->len);
-        return;
-    }
-
-    int id = SDLNet_Read32(pack->data);
-    Player_disconnect(id);
-}
-
+*/

@@ -131,12 +131,11 @@ void Player_disconnect(int id)
     }
 }
 
-void Player_reconnect(int id) 
+void Player_reconnect(int id)
 {
     if (id < 0 || id >= size_players) {
         return;
-    }
-    else {
+    } else {
         players[id].is_connected = 1;
     }
 }

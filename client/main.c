@@ -14,10 +14,7 @@
 #include "Controller.h"
 #include "GameLoop.h"
 
-#include "network/Client_Pool.h"
-#include "network/Client_Receiver.h"
-#include "network/Client_Sender.h"
-#include "network/Network.h"
+#include "Network.h"
 
 #include "../utils/Network_utils.h"
 
