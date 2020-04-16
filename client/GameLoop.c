@@ -33,9 +33,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     Network_init();
     Network_connect(server_hostname);
 
-    #define TIMEOUT 2000
+#define TIMEOUT 2000
     unsigned int start_connect_time = SDL_GetTicks();
-    while(!Network_online()) {
+    while (!Network_online()) {
         if (Network_error()) {
             printf("ERROR CONNECTING TO SERVER\n");
             Network_disconnect();
@@ -138,10 +138,10 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         //SEND our information to the server
         //
 
-        /*
-        MyPacket* pos_pack = Network_create_player_packet(our_player);
+        ENetPacket* pos_pack = Network_create_player_packet(our_player, our_id);
         Network_send_packet(pos_pack);
 
+        /*
         if (strcmp(our_player->name, wish_name)) {
             UDPpacket* namepack = Network_create_change_name_packet(wish_name);
             Network_send_packet(namepack);
@@ -162,8 +162,8 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
         Vector_reverse(incoming);
         while (incoming->num > 0) {
             ENetPacket* pack = Vector_pop(incoming);
-            int id = *((int*) pack->data);
-            int message_type = *((int*) pack->data + 4);
+            int id = *((int*)pack->data);
+            int message_type = *((int*)pack->data + 4);
 
             //add new player to the game
             if (id != -1 && !Player_get(id)) {
@@ -180,7 +180,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                 }
 
                 break;
-            /*
+                /*
             case PLAYER_DIE:
                 Network_decipher_player_die_packet(pack);
                 break;

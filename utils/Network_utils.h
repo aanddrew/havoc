@@ -26,10 +26,10 @@ enum MESSAGE_TYPE {
     PROJECTILE_DEATH,
 };
 
-//void print_packet(UDPpacket* pack);
+void print_packet(const ENetPacket* pack);
 
 //players
-ENetPacket* Network_create_player_packet(Player* player);
+ENetPacket* Network_create_player_packet(Player* player, int id);
 void Network_decipher_player_packet(ENetPacket* pack, int id, int server);
 /*
 void Network_decipher_player_packet(UDPpacket* pack, Player* player, int server);

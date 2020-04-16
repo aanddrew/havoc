@@ -1,16 +1,16 @@
 #include "Network.h"
 
-#include "../utils/Network_utils.h"
 #include "../game/Player.h"
+#include "../utils/Network_utils.h"
 
 #include <enet/enet.h>
 
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
-//data for enet, 
+//data for enet,
 //ONLY ACESS THESE INSIDE OF RECEIVER_FUN OR THE PROGRAM WILL BREAK
-static ENetHost * client;
+static ENetHost* client;
 static ENetAddress address;
 static ENetPeer* server;
 
@@ -34,17 +34,20 @@ SDL_mutex* received_mutex;
 Vector sending;
 SDL_mutex* sending_mutex;
 
-static void set_online(int new_online) {
+static void set_online(int new_online)
+{
     SDL_LockMutex(online_mutex);
     online = new_online;
     SDL_UnlockMutex(online_mutex);
 }
-static void set_error(int new_error) {
+static void set_error(int new_error)
+{
     SDL_LockMutex(error_mutex);
     error = new_error;
     SDL_UnlockMutex(error_mutex);
 }
-static void set_running(int new_running) {
+static void set_running(int new_running)
+{
     SDL_LockMutex(running_mutex);
     running = new_running;
     SDL_UnlockMutex(running_mutex);
@@ -52,9 +55,8 @@ static void set_running(int new_running) {
 
 void Network_init()
 {
-    if (enet_initialize () != 0)
-    {
-        printf ("An error occurred while initializing ENet.\n");
+    if (enet_initialize() != 0) {
+        printf("An error occurred while initializing ENet.\n");
         return;
     }
 
@@ -102,20 +104,19 @@ void Network_deinit()
     our_id = -1;
 }
 
-int receiver_fun(void* hostname) 
+int receiver_fun(void* hostname)
 {
     if (!hostname) {
         printf("Error, need ip for connection\n");
     }
 
-    client = enet_host_create (NULL /* create a client host */,
-                1 /* only allow 1 outgoing connection */,
-                2 /* allow up 2 channels to be used, 0 and 1 */,
-                0 /* assume any amount of incoming bandwidth */,
-                0 /* assume any amount of outgoing bandwidth */);
-    if (client == NULL)
-    {
-        printf ("An error occurred while trying to create an ENet client host.\n");
+    client = enet_host_create(NULL /* create a client host */,
+        1 /* only allow 1 outgoing connection */,
+        2 /* allow up 2 channels to be used, 0 and 1 */,
+        0 /* assume any amount of incoming bandwidth */,
+        0 /* assume any amount of outgoing bandwidth */);
+    if (client == NULL) {
+        printf("An error occurred while trying to create an ENet client host.\n");
         set_online(0);
         set_error(1);
         return 0;
@@ -133,52 +134,62 @@ int receiver_fun(void* hostname)
     }
 
     {
-        //send message twice to establish connection, 
+        //send message twice to establish connection,
         //packet must be created twice because enet takes ownership of packets
         int connect = CONNECTION;
 
-        ENetPacket *enet_packet = enet_packet_create(&connect, 4, ENET_PACKET_FLAG_RELIABLE);
+        ENetPacket* enet_packet = enet_packet_create(&connect, 4, ENET_PACKET_FLAG_RELIABLE);
         enet_peer_send(server, 0, enet_packet);
 
         enet_packet = enet_packet_create(&connect, 4, ENET_PACKET_FLAG_RELIABLE);
         enet_peer_send(server, 0, enet_packet);
     }
 
-
     ENetEvent event;
     while (running) {
         if (enet_host_service(client, &event, 0)) {
-            switch(event.type) {
-                case ENET_EVENT_TYPE_CONNECT:
-                    printf("We are connected to the server!\n");
+            switch (event.type) {
+            case ENET_EVENT_TYPE_CONNECT:
+                printf("We are connected to the server!\n");
+                break;
+            case ENET_EVENT_TYPE_RECEIVE: {
+                printf("Message from server : %s\n", event.packet->data);
+                if (event.packet->dataLength < 4)
                     break;
-                case ENET_EVENT_TYPE_RECEIVE: {
-                    printf("Message from server : %s\n", event.packet->data);
-                    if (event.packet->dataLength < 4) break;
 
-                    int type = *((int*) event.packet->data);
-                    switch(type) {
-                    case GIVE_ID:
-                        if (event.packet->dataLength == 8) {
-                            our_id = *((int*) event.packet->data + 4);
-                            printf("Got id %d\n", our_id);
-                            set_online(1);
-                        }
-                        break;
-                    default:
-
-                        break;
+                int type = *((int*)event.packet->data);
+                switch (type) {
+                case GIVE_ID:
+                    if (event.packet->dataLength == 8) {
+                        our_id = *((int*)event.packet->data + 4);
+                        printf("Got id %d\n", our_id);
+                        set_online(1);
                     }
-                    enet_packet_destroy(event.packet);
-                } break;
-                case ENET_EVENT_TYPE_DISCONNECT:
-                    printf("Lost connection to server\n");
-                    set_online(0);
                     break;
-                case ENET_EVENT_TYPE_NONE:
+                default:
+                    SDL_LockMutex(received_mutex);
+                    Vector_push(received, event.packet);
+                    SDL_UnlockMutex(received_mutex);
                     break;
+                }
+                enet_packet_destroy(event.packet);
+            } break;
+            case ENET_EVENT_TYPE_DISCONNECT:
+                printf("Lost connection to server\n");
+                set_online(0);
+                break;
+            case ENET_EVENT_TYPE_NONE:
+                break;
             }
         }
+
+        SDL_LockMutex(sending_mutex);
+        Vector_reverse(&sending);
+        while (sending.num > 0) {
+            ENetPacket* pack = Vector_pop(&sending);
+            enet_peer_send(server, 0, pack);
+        }
+        SDL_UnlockMutex(sending_mutex);
     }
 
     return 0;
@@ -200,10 +211,11 @@ void Network_disconnect()
     set_error(0);
 }
 
-Vector* Network_get_received() {
+Vector* Network_get_received()
+{
     SDL_LockMutex(received_mutex);
 
-    Vector*temp = received;
+    Vector* temp = received;
     received = received_swap;
     received_swap = temp;
 

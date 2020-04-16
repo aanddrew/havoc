@@ -2,12 +2,23 @@
 
 #include <enet/enet.h>
 
-ENetPacket* Network_create_player_packet(Player* player)
+void print_packet(const ENetPacket* pack)
 {
-    enet_uint8 data[32];
-    *((int*)data) = PLAYER_UPDATE;
+    for (int i = 0; i < (int)pack->dataLength; i++) {
+        if (i != 0 && i % 4 == 0)
+            printf(" ");
+        printf("%02x", ((int)pack->data[i]));
+    }
+    printf("\n");
+}
 
-    float* float_arr = (float*) data + 4;
+ENetPacket* Network_create_player_packet(Player* player, int id)
+{
+    enet_uint8 data[36];
+    *((int*)data) = PLAYER_UPDATE;
+    *((int*)data + 4) = id;
+
+    float* float_arr = (float*)(data + 8);
     float_arr[0] = player->pos.x;
     float_arr[1] = player->pos.y;
 
@@ -19,7 +30,7 @@ ENetPacket* Network_create_player_packet(Player* player)
 
     float_arr[6] = player->health;
 
-    ENetPacket* pack = enet_packet_create(data, 32, 0);
+    ENetPacket* pack = enet_packet_create(data, 36, 0);
     return pack;
 }
 
@@ -30,16 +41,17 @@ void Network_decipher_player_packet(ENetPacket* pack, int id, int server)
         return;
     }
     Player* player = Player_get(id);
-    if (!player) return;
+    if (!player)
+        return;
 
-    float* float_arr = (float*) pack->data + 4;
+    float* float_arr = (float*)pack->data + 8;
 
     player->pos.x = float_arr[0];
-    player->pos.y =  float_arr[1];
+    player->pos.y = float_arr[1];
 
     player->vel.x = float_arr[2];
     player->vel.y = float_arr[3];
-    
+
     player->look.x = float_arr[4];
     player->look.y = float_arr[5];
 
@@ -57,7 +69,7 @@ void Network_decipher_own_player_packet(ENetPacket* pack, int id)
     }
 
     Player* player = Player_get(id);
-    player->health = ((float*) pack->data)[6];
+    player->health = ((float*)pack->data)[6];
 }
 
 /*
