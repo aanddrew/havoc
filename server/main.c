@@ -17,6 +17,8 @@
 
 static int delta = 10; //10 ms between update times
 
+#define DISCONNECT_TIMEOUT 5.0f //SECONDS
+
 int main()
 {
     SDL_Init(0);
@@ -36,8 +38,17 @@ int main()
             Vector* received = Server_Receiver_get_received();
             while (received->num > 0) {
                 UDPpacket* pack = Vector_pop(received);
+                printf("received: ");
+                print_packet(pack);
+                printf("\n");
+
                 int id = SDLNet_Read32(pack->data);
                 int type = SDLNet_Read32(pack->data + 4);
+
+                if (Player_get(id)) {
+                    Player_get(id)->time_since_last_message = 0.0f;
+                }
+
                 switch (type) {
                 case CONNECT_REQUEST:
                     printf("reconnection request\n");
@@ -62,7 +73,7 @@ int main()
                     break;
                 case PLAYER_UPDATE:
                     if (!Player_get(id)) {
-                        Player_connect("unknown_player", NULL);
+                        Player_connect_with_id("unknown_player", id);
                         Player_get(id)->team = id;
                     }
                     if (Player_get(id)->is_alive) {
@@ -101,7 +112,8 @@ int main()
                 }
             }
 
-            Game_update(((float)delta) / 1000.0f);
+            float dt = ((float)delta) / 1000.0f;
+            Game_update(dt);
 
             //send player information back to the clients
             for (int i = 0; i < Player_num_players(); i++) {
@@ -138,6 +150,22 @@ int main()
 
                         SDL_LockMutex(shared_pool.sending_mutex);
                         Vector_push(shared_pool.sending, spawnpack);
+                        SDL_UnlockMutex(shared_pool.sending_mutex);
+                    }
+
+                    //if the client should disconnect tell clients
+                    p->time_since_last_message += dt;
+                    if (p->time_since_last_message >= DISCONNECT_TIMEOUT) {
+                        UDPpacket* dcpack = Network_create_player_disconnect_packet(i);
+
+                        Player_disconnect(i);
+                        printf("Disconnecting client %d\n", i);
+                        SDL_LockMutex(shared_pool.clients_mutex);
+                        shared_pool.clients[i].active = 0;
+                        SDL_UnlockMutex(shared_pool.clients_mutex);
+
+                        SDL_LockMutex(shared_pool.sending_mutex);
+                        Vector_push(shared_pool.sending, dcpack);
                         SDL_UnlockMutex(shared_pool.sending_mutex);
                     }
                 }

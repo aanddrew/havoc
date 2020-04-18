@@ -34,6 +34,8 @@ void Player_init(Player* self)
     self->just_respawned = 0;
     self->is_alive = 1;
     self->is_connected = 0;
+
+    self->time_since_last_message = 0.0f;
 }
 
 void Player_deinit(Player* self)

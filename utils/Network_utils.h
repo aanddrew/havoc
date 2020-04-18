@@ -6,15 +6,20 @@
 #include "../game/Player.h"
 #include "../game/Projectile.h"
 
+enum MESSAGE_PROTOCOL {
+    UNRELIABLE,
+    RELIABLE,
+};
+
 enum MESSAGE_TYPE {
-    //connection
+    //server stuff
     CONNECT_REQUEST,
-    DISCONNECT_ACKNOWLEDGE,
 
     //players
     PLAYER_UPDATE,
     PLAYER_DIE,
     PLAYER_SPAWN,
+    PLAYER_DISCONNECT,
 
     //names
     CHANGE_NAME,
@@ -38,6 +43,9 @@ void Network_decipher_player_die_packet(UDPpacket* pack);
 UDPpacket* Network_create_player_spawn_packet(int id, Player* player);
 void Network_decipher_player_spawn_packet(UDPpacket* pack);
 
+UDPpacket* Network_create_player_disconnect_packet(int id);
+void Network_decipher_player_disconnect_packet(UDPpacket* pack);
+
 //projectiles
 UDPpacket* Network_create_projectile_packet(Projectile* proj);
 void Network_decipher_projectile_packet(UDPpacket* pack, Projectile* proj);
@@ -51,9 +59,5 @@ UDPpacket* Network_create_get_names_packet();
 void Network_decipher_get_names_packet(UDPpacket* pack);
 UDPpacket* Network_create_receive_names_packet();
 void Network_decipher_receive_names_packet(UDPpacket* pack);
-
-//server stuff
-UDPpacket* Network_create_disconnect_packet();
-void Network_decipher_disconnect_packet(UDPpacket* pack);
 
 #endif

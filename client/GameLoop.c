@@ -164,6 +164,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                 if (id != (Uint32)-1 && !Player_get(id)) {
                     Player_connect_with_id("new player", id);
                 }
+                print_packet(pack);
 
                 //all other events
                 switch (message_type) {
@@ -180,6 +181,9 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
                     break;
                 case PLAYER_SPAWN:
                     Network_decipher_player_spawn_packet(pack);
+                    break;
+                case PLAYER_DISCONNECT:
+                    Network_decipher_player_disconnect_packet(pack);
                     break;
                 case PROJECTILE_LAUNCH:
                     Network_decipher_projectile_packet(pack, NULL);

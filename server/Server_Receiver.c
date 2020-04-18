@@ -9,15 +9,17 @@
 
 #include "../utils/Vector.h"
 
+#include "../game/Player.h"
+
 int Server_Receiver_is_client_active(int c)
 {
-    SDL_LockMutex(shared_pool.clients_mutex);
-    int num_clients = shared_pool.num_clients;
-    SDL_UnlockMutex(shared_pool.clients_mutex);
-    if (c >= num_clients || c < 0) {
+    if (c >= MAX_CLIENTS || c < 0) {
         return 0;
     }
-    return 1;
+    SDL_LockMutex(shared_pool.clients_mutex);
+    int active = shared_pool.clients[c].active;
+    SDL_UnlockMutex(shared_pool.clients_mutex);
+    return active;
 }
 
 Vector* Server_Receiver_get_received()
@@ -57,11 +59,6 @@ static int listen_fun(void* arg)
     printf("Starting listening thread\n");
     UDPpacket* temp_packet = SDLNet_AllocPacket(256);
     while (running) {
-        //get the number of clients
-        SDL_LockMutex(shared_pool.clients_mutex);
-        Uint32 num_clients = shared_pool.num_clients;
-        SDL_UnlockMutex(shared_pool.clients_mutex);
-
         SDL_LockMutex(shared_pool.server_mutex);
         int numrecv = SDLNet_UDP_Recv(shared_pool.server, temp_packet);
         SDL_UnlockMutex(shared_pool.server_mutex);
@@ -70,30 +67,33 @@ static int listen_fun(void* arg)
             //new client connecting
             int id = Pool_get_client_id(temp_packet->address);
             if (id < 0) {
-                printf("new client connected, id: %d\n", num_clients);
-                //increment num_clients
+                int new_id;
+                Player_connect("unknown_player", &new_id);
+                Player_get(new_id)->team = id;
+
+                printf("new client connected, id: %d\n", new_id);
+
                 SDL_LockMutex(shared_pool.clients_mutex);
-                shared_pool.num_clients++;
+                shared_pool.clients[new_id].active = 1;
                 SDL_UnlockMutex(shared_pool.clients_mutex);
 
                 //write their id to a packet
                 UDPpacket* id_packet = SDLNet_AllocPacket(4);
-                SDLNet_Write32(num_clients, id_packet->data);
+                SDLNet_Write32(new_id, id_packet->data);
                 id_packet->len = 4;
                 id_packet->address = temp_packet->address;
 
                 //send them their id and bind the server socket at  their id's channel
                 SDL_LockMutex(shared_pool.server_mutex);
-                SDLNet_UDP_Bind(shared_pool.server, num_clients, &temp_packet->address);
-                SDLNet_UDP_Send(shared_pool.server, num_clients, id_packet);
+                SDLNet_UDP_Bind(shared_pool.server, new_id, &temp_packet->address);
+                SDLNet_UDP_Send(shared_pool.server, new_id, id_packet);
                 SDL_UnlockMutex(shared_pool.server_mutex);
 
                 SDLNet_FreePacket(id_packet);
 
                 //add their ip address to the clients array
                 SDL_LockMutex(shared_pool.clients_mutex);
-                shared_pool.clients[num_clients].address = temp_packet->address;
-                shared_pool.clients[num_clients].id = num_clients;
+                shared_pool.clients[new_id].address = temp_packet->address;
                 SDL_UnlockMutex(shared_pool.clients_mutex);
             }
             //already connected client is sending a message

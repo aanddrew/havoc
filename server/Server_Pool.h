@@ -14,8 +14,8 @@
 
 #define MAX_CLIENTS 16
 typedef struct {
+    int active;
     IPaddress address;
-    int id;
 } Client;
 
 typedef struct {
@@ -28,7 +28,6 @@ typedef struct {
     SDL_mutex* server_mutex;
 
     Client clients[MAX_CLIENTS];
-    int num_clients;
     SDL_mutex* clients_mutex;
 
     SDL_mutex* received_mutex;

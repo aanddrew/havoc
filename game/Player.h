@@ -30,6 +30,8 @@ typedef struct {
     int just_respawned;
     int is_alive;
     int is_connected;
+
+    float time_since_last_message;
 } Player;
 
 void Player_init(Player* self);

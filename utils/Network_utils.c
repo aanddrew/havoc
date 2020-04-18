@@ -2,12 +2,12 @@
 
 void print_packet(UDPpacket* pack)
 {
-    printf("Printing packet %p\n", pack);
     for (int i = 0; i < pack->len; i++) {
-        if (i % 4 == 0)
-            printf("\n");
-        printf("%x ", (int)pack->data[i]);
+        if (i != 0 && i % 4 == 0)
+            printf(" ");
+        printf("%x", (int)pack->data[i]);
     }
+    printf("\n");
 }
 
 UDPpacket* Network_create_player_packet(Player* player)
@@ -139,6 +139,26 @@ void Network_decipher_player_spawn_packet(UDPpacket* pack)
     Player_get(id)->pos.x = x;
     Player_get(id)->pos.y = y;
     Player_get(id)->health = h;
+}
+
+UDPpacket* Network_create_player_disconnect_packet(int id) 
+{
+    UDPpacket* pack = SDLNet_AllocPacket(12);
+    SDLNet_Write32(-1, pack->data);
+    SDLNet_Write32(PLAYER_DISCONNECT, pack->data + 4);
+    SDLNet_Write32(id, pack->data + 8);
+    return pack;
+}
+
+void Network_decipher_player_disconnect_packet(UDPpacket* pack)
+{
+    if (pack->len != 12) {
+        printf("INVALID PLAYER_DISCONNECT PACKET OF LENGTH: %d\n", pack->len);
+        return;
+    }
+
+    int id = SDLNet_Read32(pack->data + 8);
+    Player_disconnect(id);
 }
 
 UDPpacket* Network_create_projectile_packet(Projectile* proj)
@@ -305,22 +325,5 @@ void Network_decipher_receive_names_packet(UDPpacket* pack)
 
         Player_set_name(name, id);
     }
-}
-
-UDPpacket* Network_create_disconnect_packet() {
-    UDPpacket* pack = SDLNet_AllocPacket(4);
-    SDLNet_Write32(DISCONNECT_REQUEST, pack->data);
-    pack->len = 4;
-    return pack;
-}
-void Network_decipher_disconnect_packet(UDPpacket* pack) {
-    //8 because the id of the player will now be prepended to this packet
-    if (pack->len != 8) {
-        printf("INVALID DISCONNECT PACKET OF LENGTH %d\n", pack->len);
-        return;
-    }
-
-    int id = SDLNet_Read32(pack->data);
-    Player_disconnect(id);
 }
 
