@@ -56,7 +56,7 @@ int main()
                         printf("actually reconnecting\n");
                         Player_reconnect(id);
                     }
-                        
+
                     {
                         //send their id back to them
                         UDPpacket* id_packet = SDLNet_AllocPacket(4);

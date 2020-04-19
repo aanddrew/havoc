@@ -9,7 +9,8 @@ int Pool_get_client_id(IPaddress address)
     SDL_LockMutex(shared_pool.clients_mutex);
     int id = -1;
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (!shared_pool.clients[i].active) continue;
+        if (!shared_pool.clients[i].active)
+            continue;
 
         if (address.host == shared_pool.clients[i].address.host
             && address.port == shared_pool.clients[i].address.port)

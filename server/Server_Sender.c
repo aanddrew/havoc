@@ -24,7 +24,8 @@ static int thread_fun(void* arg)
             SDL_LockMutex(pool->clients_mutex);
             SDL_LockMutex(pool->server_mutex);
             for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (!pool->clients[i].active) continue;
+                if (!pool->clients[i].active)
+                    continue;
 
                 pack->address = shared_pool.clients[i].address;
                 SDLNet_UDP_Send(pool->server, i, pack);

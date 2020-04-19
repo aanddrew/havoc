@@ -66,7 +66,7 @@ int Network_connect(const char* hostname)
             our_id = SDLNet_Read32(pack->data);
             printf("Server gives us id: %d\n", our_id);
             break;
-        } 
+        }
         SDL_Delay(100);
         num_tries++;
     }

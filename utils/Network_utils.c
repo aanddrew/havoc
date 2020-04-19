@@ -141,7 +141,7 @@ void Network_decipher_player_spawn_packet(UDPpacket* pack)
     Player_get(id)->health = h;
 }
 
-UDPpacket* Network_create_player_disconnect_packet(int id) 
+UDPpacket* Network_create_player_disconnect_packet(int id)
 {
     UDPpacket* pack = SDLNet_AllocPacket(12);
     SDLNet_Write32(-1, pack->data);
@@ -326,4 +326,3 @@ void Network_decipher_receive_names_packet(UDPpacket* pack)
         Player_set_name(name, id);
     }
 }
-

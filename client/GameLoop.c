@@ -39,8 +39,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     if (!online) {
         printf("You are offline\n");
         Network_deinit();
-    }
-    else {
+    } else {
         printf("Successfully connected\n");
     }
 
@@ -52,7 +51,7 @@ int Game_Loop(Window* window, const char* server_hostname, const char* wish_name
     /* Pause Menu */
     Menu pause_menu;
     Menu_init(&pause_menu);
-    
+
     int pausemenu_ids[PAUSEMENU_NUM_ITEMS];
 
     {
