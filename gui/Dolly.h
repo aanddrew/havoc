@@ -28,6 +28,7 @@ typedef struct {
 void Dolly_init(Dolly* self);
 void Dolly_init_with_texture(Dolly* self, SDL_Renderer* window_renderer, const char* file_name);
 void Dolly_refresh_texture_from_surface(Dolly* self, SDL_Renderer* window_renderer);
+void Dolly_team_colorize(Dolly* self, SDL_Renderer* renderer, int team);
 
 //drawing
 void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam);

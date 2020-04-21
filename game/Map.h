@@ -9,6 +9,8 @@ typedef struct {
     int width;
     int height;
     int depth;
+
+    int team_spawns[8][2]; //[i][0/1] is team i's x/y spawn coord
 } Map;
 
 void Map_init(Map* self, const char* file_name);

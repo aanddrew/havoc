@@ -57,9 +57,14 @@ Uint16 Map_get_tile(Map* self, int x, int y, int z)
 
 void Map_get_spawn(Map* self, int team, int* x, int* y)
 {
-    printf("different team spawns not implemented yet: team %d\n", team);
-    *x = rand() % self->width;
-    *y = rand() % self->height;
+    if (team < 0 || team >= 8) {
+        printf("Map_get_spawn: team %d not defined\n", team);
+        *x = -1;
+        *y = -1;
+        return;
+    }
+    *x = self->team_spawns[team][0];
+    *y = self->team_spawns[team][1];
 }
 
 void Map_save(Map* self, const char* file_name)
@@ -73,6 +78,7 @@ void Map_save(Map* self, const char* file_name)
     fwrite(&self->height, 4, 1, file);
     fwrite(&self->depth, 4, 1, file);
     fwrite(self->tiles, self->width * self->height * self->depth * sizeof(Uint16), 1, file);
+    fwrite(self->team_spawns, 16 * sizeof(int), 1, file);
     fclose(file);
 }
 
@@ -99,6 +105,7 @@ void Map_load(Map* self, const char* file_name)
     }
 
     fread(self->tiles, num_tiles * sizeof(Uint16), 1, file);
+    fread(self->team_spawns, 16 * sizeof(int), 1, file);
     fclose(file);
 }
 

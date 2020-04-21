@@ -6,6 +6,8 @@ CLIENT_OUT=havoc
 SERVER_OUT=havoc_server
 EDITOR_OUT=havoc_editor
 
+all: client server editor
+
 client:
 	+$(MAKE) -C client
 	+$(MAKE) -C renderers

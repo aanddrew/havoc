@@ -33,6 +33,31 @@ void Dolly_init_with_texture(Dolly* self, SDL_Renderer* window_renderer, const c
     }
 }
 
+void Dolly_team_colorize(Dolly* self, SDL_Renderer* renderer, int team)
+{
+    int num_pixels = self->surface->w * self->surface->h;
+    //set the colors in the surface to reflect the team of this wizard
+    for (int p = 0; p < num_pixels; p++) {
+        Uint8* pixel = self->surface->pixels + (p * 4);
+        SDL_Color* color = (SDL_Color*)pixel;
+        if (color->r > 128 && color->g > 128 && color->b > 128) {
+            continue;
+        }
+
+        //team color is determined by the bits in the team number
+        //i.e. team 5 is team 0b101 which would have the red and green bits
+        //colored, making them the yellow team
+        int new_r = (team & 1) ? 200 : color->r;
+        int new_g = (team & 2) ? 150 : color->g;
+        int new_b = (team & 4) ? 200 : color->b;
+        color->r = new_r;
+        color->g = new_g;
+        color->b = new_b;
+    }
+
+    Dolly_refresh_texture_from_surface(self, renderer);
+}
+
 void Dolly_refresh_texture_from_surface(Dolly* self, SDL_Renderer* window_renderer)
 {
     if (self->texture)
@@ -54,7 +79,6 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam)
 
     while (y <= h - self->srcrect.h) {
         while (x <= w - self->srcrect.w) {
-            rect_copy.y -= self->offset;
             Camera_transform_rect(cam, &rect_copy, &camera_rect);
 
             self->srcrect.x = x;
@@ -70,6 +94,7 @@ void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam)
                 SDL_FLIP_NONE);
 
             x += self->srcrect.w;
+            rect_copy.y -= self->offset;
         }
         y += self->srcrect.h;
     }

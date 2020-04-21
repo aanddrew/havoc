@@ -4,6 +4,8 @@
 #include <SDL2/SDL_image.h>
 
 const char* texture_file = "res/map/havoc_textures.png";
+const char* spawner_texture_file = "res/wizard/havoc_spawner.png";
+Dolly spawners[8];
 
 #define TILE_WIDTH 64
 static SDL_Surface* atlas_surface = NULL;
@@ -20,6 +22,13 @@ void MapRenderer_init(SDL_Renderer* renderer)
     atlas_width = atlas_surface->w / TILE_WIDTH;
     atlas_height = atlas_surface->h / TILE_WIDTH;
     atlas_texture = SDL_CreateTextureFromSurface(renderer, atlas_surface);
+
+    for (int i = 0; i < 8; i++) {
+        Dolly_init_with_texture(&spawners[i], renderer, spawner_texture_file);
+        Dolly_team_colorize(&spawners[i], renderer, i);
+        spawners[i].srcrect.w = 64;
+        spawners[i].srcrect.h = 64;
+    }
 }
 
 void MapRenderer_deinit()
@@ -57,6 +66,19 @@ void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam)
                 SDL_RenderCopy(renderer, atlas_texture, &srcrect, &destrect);
             }
         }
+    }
+
+    for (int i = 0; i < 8; i++) {
+        int x, y;
+        Map_get_spawn(self, i, &x, &y);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        x *= self->tile_width;
+        y *= self->tile_width;
+        spawners[i].rect.x = x;
+        spawners[i].rect.y = y;
+        Dolly_render(&spawners[i], renderer, cam);
     }
 }
 

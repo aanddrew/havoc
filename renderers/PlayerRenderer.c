@@ -10,25 +10,7 @@ void Player_init_all_sprites(SDL_Renderer* renderer)
         Dolly_init_with_texture(&wizards[i], renderer, "res/wizard/wizard_sheet_16.png");
         wizards[i].srcrect.w = 16;
         wizards[i].srcrect.h = 16;
-
-        int num_pixels = wizards[i].surface->w * wizards[i].surface->h;
-        //set the colors in the surface to reflect the team of this wizard
-        for (int p = 0; p < num_pixels; p++) {
-            Uint8* pixel = wizards[i].surface->pixels + (p * 4);
-            SDL_Color* color = (SDL_Color*)pixel;
-            if (color->r > 128 && color->g > 128 && color->b > 128) {
-                continue;
-            }
-
-            int new_r = (i & 1) ? 200 : color->r;
-            int new_g = (i & 2) ? 150 : color->g;
-            int new_b = (i & 4) ? 200 : color->b;
-            color->r = new_r;
-            color->g = new_g;
-            color->b = new_b;
-        }
-
-        Dolly_refresh_texture_from_surface(&wizards[i], renderer);
+        Dolly_team_colorize(&wizards[i], renderer, i);
     }
 }
 
