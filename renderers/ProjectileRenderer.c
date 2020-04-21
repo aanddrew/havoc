@@ -10,11 +10,15 @@ int projectile_sizes[NUM_PROJECTILE_KINDS] = {
 
 void Proj_init_all_sprites(SDL_Renderer* window_renderer)
 {
-    Dolly_init_with_sprites(
+    Dolly_init_with_texture(
         &projectile_sprites[ZAP],
         window_renderer,
-        "res/projectile/zap_16_00.bmp",
-        1);
+        "res/projectile/zap_16_00.bmp");
+
+    projectile_sprites[ZAP].srcrect.w = 16;
+    projectile_sprites[ZAP].srcrect.h = 16;
+    projectile_sprites[ZAP].rect.w = 64;
+    projectile_sprites[ZAP].rect.h = 64;
 }
 
 void Proj_cleanup_all_sprites()

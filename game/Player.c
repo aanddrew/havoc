@@ -23,7 +23,7 @@ void Player_init(Player* self)
     self->hitbox.center.y = self->pos.y;
     self->hitbox.radius = 32;
 
-    self->team = -1;
+    self->team = 2;
 
     self->time_dead = 0;
     self->just_respawned = 0;

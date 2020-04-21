@@ -15,19 +15,19 @@
 //
 
 typedef struct {
-    Vector surfaces; //not sure if we need to hold onto these
-    Vector textures;
-    SDL_Rect rect;
+    SDL_Surface* surface; //not sure if we need to hold onto this
+    SDL_Texture* texture;
+
+    SDL_Rect rect; //change w and h to change how large it is drawn on screen
+    SDL_Rect srcrect; //change w and h to change how large it is in texture
+
     float angle; 
     int offset; // how much to separate each layer by vertically
 } Dolly;
 
 void Dolly_init(Dolly* self);
-void Dolly_init_with_sprites(Dolly* self, SDL_Renderer* window_renderer, const char* file_name, int num);
-
-//in the form *xx.* where xx is the number to iterate through
-//This creates num layers of sprites to use in the model
-int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num);
+void Dolly_init_with_texture(Dolly* self, SDL_Renderer* window_renderer, const char* file_name);
+void Dolly_refresh_texture_from_surface(Dolly* self, SDL_Renderer* window_renderer);
 
 //drawing
 void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam);

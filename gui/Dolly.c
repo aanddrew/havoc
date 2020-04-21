@@ -8,59 +8,70 @@
 
 void Dolly_init(Dolly* self)
 {
-    Vector_init(&self->surfaces);
-    Vector_init(&self->textures);
-
     self->rect.x = 0;
     self->rect.y = 0;
     self->rect.w = 64;
     self->rect.h = 64;
 
+    self->srcrect.x = 0;
+    self->srcrect.y = 0;
+
+    self->surface = NULL;
+    self->texture = NULL;
+
     self->offset = 5;
 }
 
-void Dolly_init_with_sprites(Dolly* self, SDL_Renderer* window_renderer, const char* file_name, int num)
+void Dolly_init_with_texture(Dolly* self, SDL_Renderer* window_renderer, const char* file_name)
 {
     Dolly_init(self);
-    Dolly_setSprites(self, window_renderer, file_name, num);
+    self->surface = IMG_Load(file_name);
+    self->texture = SDL_CreateTextureFromSurface(window_renderer, self->surface);
+    if (!self->surface || !self->texture) {
+        printf("Error loading texture file %s: %s\n", file_name, SDL_GetError());
+        return;
+    }
 }
 
-int Dolly_setSprites(Dolly* self, SDL_Renderer* window_render, const char* file_name, int num)
+void Dolly_refresh_texture_from_surface(Dolly* self, SDL_Renderer* window_renderer)
 {
-    char* name = strdup(file_name);
-    if (num != 1)
-        name[(strchr(name, '.') - name) - 2] = '0';
-    for (int i = 0; i < num; i++) {
-        if (num != 1)
-            name[(strchr(name, '.') - name) - 1] = '0' + i;
-        SDL_Surface* surface = IMG_Load(name);
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(window_render, surface);
-        if (!surface || !texture) {
-            printf("error loading texture file %s: %s\n", name, SDL_GetError());
-            return 0;
-        }
-        Vector_push(&self->surfaces, surface);
-        Vector_push(&self->textures, texture);
-    }
-    free(name);
-    return 1;
+    if (self->texture)
+        SDL_DestroyTexture(self->texture);
+
+    self->texture = SDL_CreateTextureFromSurface(window_renderer, self->surface);
 }
 
 void Dolly_render(Dolly* self, SDL_Renderer* window_renderer, const Camera* cam)
 {
     SDL_Rect rect_copy = self->rect;
     SDL_Rect camera_rect;
-    for (int i = 0; i < self->textures.num; i++) {
-        rect_copy.y -= self->offset;
-        Camera_transform_rect(cam, &rect_copy, &camera_rect);
-        SDL_RenderCopyEx(
-            window_renderer,
-            Vector_get(&self->textures, i),
-            NULL,
-            &camera_rect,
-            (double)(self->angle) * 180.0f / M_PI,
-            NULL,
-            SDL_FLIP_NONE);
+
+    int x = 0;
+    int y = 0;
+
+    int w, h;
+    SDL_QueryTexture(self->texture, NULL, NULL, &w, &h);
+
+    while (y <= h - self->srcrect.h) {
+        while (x <= w - self->srcrect.w) {
+            rect_copy.y -= self->offset;
+            Camera_transform_rect(cam, &rect_copy, &camera_rect);
+
+            self->srcrect.x = x;
+            self->srcrect.y = y;
+
+            SDL_RenderCopyEx(
+                window_renderer,
+                self->texture,
+                &self->srcrect,
+                &camera_rect,
+                (double)(self->angle) * 180.0f / M_PI,
+                NULL,
+                SDL_FLIP_NONE);
+
+            x += self->srcrect.w;
+        }
+        y += self->srcrect.h;
     }
 }
 
@@ -83,12 +94,6 @@ int Dolly_getY(Dolly* self) { return self->rect.y; }
 
 void Dolly_delete(Dolly* self)
 {
-    for (int i = 0; i < self->surfaces.num; i++) {
-        SDL_FreeSurface(Vector_get(&self->surfaces, i));
-    }
-    for (int i = 0; i < self->textures.num; i++) {
-        SDL_DestroyTexture(Vector_get(&self->textures, i));
-    }
-    Vector_delete(&self->surfaces);
-    Vector_delete(&self->textures);
+    SDL_FreeSurface(self->surface);
+    SDL_DestroyTexture(self->texture);
 }
