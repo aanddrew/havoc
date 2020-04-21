@@ -68,6 +68,7 @@ void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam)
         }
     }
 
+    printf("Rendering spawners\n");
     for (int i = 0; i < 8; i++) {
         int x, y;
         Map_get_spawn(self, i, &x, &y);
@@ -76,6 +77,7 @@ void Map_render(Map* self, SDL_Renderer* renderer, const Camera* cam)
         }
         x *= self->tile_width;
         y *= self->tile_width;
+        printf("spawn %d: %d, %d\n", i, x, y);
         spawners[i].rect.x = x;
         spawners[i].rect.y = y;
         Dolly_render(&spawners[i], renderer, cam);

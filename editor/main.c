@@ -51,6 +51,7 @@ enum ITEMS {
     TILE_BTN,
     SIZE_BOX,
     DEPTH_BOX,
+    SPAWNER_BOX,
     NUM_ITEMS,
 };
 
@@ -92,6 +93,7 @@ int main(int argc, char** argv)
 
     int selected_tile = 0;
     int screen_button_pressed = 0;
+    int selected_spawner = -1;
 
     int current_time = SDL_GetTicks();
     int dt = 0;
@@ -120,9 +122,13 @@ int main(int argc, char** argv)
                                     brush_size = num;
                                 } else if (top_menu.selected_box == IDS[DEPTH_BOX]) {
                                     brush_depth = num;
+                                } else if (top_menu.selected_box == IDS[SPAWNER_BOX]) {
+                                    printf("setting spawner to %d\n", num);
+                                    selected_spawner = num;
                                 }
                             }
                             Menu_deselect_textbox();
+                            top_menu.selected_box = -1;
                         }
                     }
                 }
@@ -225,17 +231,23 @@ int main(int argc, char** argv)
                 mouse_button_pressed[i] = 0;
             }
         }
+        if (top_menu.selected_box >= 0) {
+            screen_button_pressed = 1;
+        }
 
         //brush painting, unless a menu button was pressed
         int x, y;
         SDL_GetMouseState(&x, &y);
         if (mouse_button_pressed[LEFT_BUTTON] && !screen_button_pressed) {
-            int screen_button_pressed = 0;
-            if (!screen_button_pressed) {
-                int worldx, worldy;
-                Camera_get_mousestate_relative(&cam, &worldx, &worldy);
-                worldx /= 64;
-                worldy /= 64;
+            int worldx, worldy;
+            Camera_get_mousestate_relative(&cam, &worldx, &worldy);
+            worldx /= 64;
+            worldy /= 64;
+            if (selected_spawner > 0) {
+                printf("%d\n", selected_spawner);
+                map.team_spawns[selected_spawner][0] = worldx;
+                map.team_spawns[selected_spawner][1] = worldy;
+            } else {
                 int radius = brush_size - 1;
                 for (int brush_x = worldx - radius; brush_x <= worldx + radius; brush_x++) {
                     for (int brush_y = worldy - radius; brush_y <= worldy + radius; brush_y++) {
@@ -353,6 +365,15 @@ void init_top_menu()
         layer.rect.y = start_layer_y - i * 22;
         LAYER_IDS[i] = Menu_add_button(&top_menu, layer);
     }
+
+    //team spawner box
+    TextBox spawner_box;
+    TextBox_init(&spawner_box, "team spawner", 16);
+    TextBox_append_char(&spawner_box, '0');
+    spawner_box.x = -80;
+    spawner_box.y = 400;
+    spawner_box.box_width = 50;
+    IDS[SPAWNER_BOX] = Menu_add_textbox(&top_menu, spawner_box);
 
     IDS[DEPTH_BOX] = Menu_add_textbox(&top_menu, depth_box);
     IDS[SIZE_BOX] = Menu_add_textbox(&top_menu, size_box);
