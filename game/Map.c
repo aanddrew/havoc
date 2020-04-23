@@ -24,6 +24,10 @@ void Map_init(Map* self, const char* file_name)
             }
         }
     }
+    for (int i = 0; i < 8; i++) {
+        self->team_spawns[i][0] = -1;
+        self->team_spawns[i][1] = -1;
+    }
 }
 
 void Map_deinit(Map* self)

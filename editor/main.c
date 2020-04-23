@@ -90,10 +90,20 @@ int main(int argc, char** argv)
     Map_init(&map, NULL);
 
     init_top_menu();
-
-    int selected_tile = 0;
     int screen_button_pressed = 0;
-    int selected_spawner = -1;
+
+    //these dictate what happens when left clicking on map
+    enum SELECTION_TYPE {
+        TILE,
+        SPAWNER,
+    };
+    struct {
+        int type;
+        int num;
+    } selection;
+
+    selection.type = 0;
+    selection.num = 0;
 
     int current_time = SDL_GetTicks();
     int dt = 0;
@@ -124,7 +134,8 @@ int main(int argc, char** argv)
                                     brush_depth = num;
                                 } else if (top_menu.selected_box == IDS[SPAWNER_BOX]) {
                                     printf("setting spawner to %d\n", num);
-                                    selected_spawner = num;
+                                    selection.type = SPAWNER;
+                                    selection.num = num;
                                 }
                             }
                             Menu_deselect_textbox();
@@ -222,7 +233,8 @@ int main(int argc, char** argv)
                     Button* tile_btn = Menu_get_button(&top_menu, IDS[TILE_BTN]);
                     tile_btn->srcrect.x = i % (atlas_w / 64) * 64;
                     tile_btn->srcrect.y = i / (atlas_w / 64) * 64;
-                    selected_tile = i;
+                    selection.type = TILE;
+                    selection.num = i;
                 }
             }
             top_menu.selected_button = -1;
@@ -243,17 +255,20 @@ int main(int argc, char** argv)
             Camera_get_mousestate_relative(&cam, &worldx, &worldy);
             worldx /= 64;
             worldy /= 64;
-            if (selected_spawner > 0) {
-                printf("%d\n", selected_spawner);
-                map.team_spawns[selected_spawner][0] = worldx;
-                map.team_spawns[selected_spawner][1] = worldy;
-            } else {
+            switch (selection.type) {
+            case SPAWNER: {
+                printf("%d\n", selection.num);
+                map.team_spawns[selection.num][0] = worldx;
+                map.team_spawns[selection.num][1] = worldy;
+            } break;
+            case TILE: {
                 int radius = brush_size - 1;
                 for (int brush_x = worldx - radius; brush_x <= worldx + radius; brush_x++) {
                     for (int brush_y = worldy - radius; brush_y <= worldy + radius; brush_y++) {
-                        Map_set_tile(&map, selected_tile, brush_x, brush_y, brush_depth);
+                        Map_set_tile(&map, selection.num, brush_x, brush_y, brush_depth);
                     }
                 }
+            } break;
             }
         }
 
