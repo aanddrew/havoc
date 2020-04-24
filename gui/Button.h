@@ -24,7 +24,7 @@ typedef struct {
   int centerx; // when non-zero rect.x is added to half the renderer's width
   int centery; // when non-zero rect.y is added to half the renderer's height
 
-  SDL_Color color;
+  SDL_Color bg_color;
 
   SDL_Rect srcrect; // srcrect for drawing from texture
 
@@ -34,6 +34,7 @@ typedef struct {
   int is_hidden;  // when non-zero don't draw the button
   int is_dummy;   // used by menus, when non-zero it should not be hovered or
                   // active
+  int draw_background; // draw a background behind the texture
 } Button;
 
 void Button_init(Button *self);

@@ -15,9 +15,17 @@ void Button_init(Button *self) {
   self->centerx = 0;
   self->centery = 0;
 
+  self->type = TEXTURE;
   self->texture = NULL;
   self->is_active = 0;
   self->is_hovered = 0;
+  self->is_hidden = 0;
+
+  self->bg_color.r = 200;
+  self->bg_color.g = 200;
+  self->bg_color.b = 200;
+  self->bg_color.a = 255;
+  self->draw_background = 0;
 }
 
 void Button_deinit(Button *self) {
@@ -99,9 +107,16 @@ void Button_render(Button *self, SDL_Renderer *renderer) {
   temp_rect.w = self->rect.w;
   temp_rect.h = self->rect.h;
 
+  if (self->draw_background) {
+    SDL_SetRenderDrawColor(renderer, self->bg_color.r, self->bg_color.g,
+                           self->bg_color.b, self->bg_color.a);
+    SDL_RenderFillRect(renderer, &temp_rect);
+  }
+
   switch (self->type) {
   case TEXTURE: {
-    SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
+    if (self->texture)
+      SDL_RenderCopy(renderer, self->texture, &self->srcrect, &temp_rect);
   } break;
   case TEXT:
     FC_Draw(Fonts_getfont(self->font_size), renderer, temp_rect.x, temp_rect.y,
