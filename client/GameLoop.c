@@ -72,7 +72,7 @@ int Game_Loop(Window *window, const char *server_hostname,
   GameRenderer_init(window->renderer);
   MapRenderer_init(window->renderer);
 
-  Hud_init();
+  Hud_init(window->renderer);
 
   Player *our_player = Player_connect_with_id("default", our_id);
 

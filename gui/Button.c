@@ -20,6 +20,7 @@ void Button_init(Button *self) {
   self->is_active = 0;
   self->is_hovered = 0;
   self->is_hidden = 0;
+  self->is_dummy = 0;
 
   self->bg_color.r = 200;
   self->bg_color.g = 200;
@@ -57,11 +58,6 @@ void Button_init_text(Button *self, const char *msg, int font_size) {
 
   self->srcrect.x = 0;
   self->srcrect.y = 0;
-
-  self->is_active = 0;
-  self->is_hovered = 0;
-  self->is_hidden = 0;
-  self->is_dummy = 0;
 }
 
 void Button_init_icon(Button *self, SDL_Renderer *renderer,
@@ -89,11 +85,13 @@ void Button_init_texture(Button *self, SDL_Texture *tex) {
   self->srcrect.y = 0;
   self->srcrect.w = 64;
   self->srcrect.h = 64;
+}
 
-  self->is_active = 0;
-  self->is_hovered = 0;
-  self->is_hidden = 0;
-  self->is_dummy = 0;
+void Button_init_atlas(Button *self, Atlas *atlas) {
+  Button_init(self);
+  self->type = ATLAS;
+  self->atlas = atlas;
+  self->atlas_index = 0;
 }
 
 void Button_render(Button *self, SDL_Renderer *renderer) {
@@ -121,6 +119,10 @@ void Button_render(Button *self, SDL_Renderer *renderer) {
   case TEXT:
     FC_Draw(Fonts_getfont(self->font_size), renderer, temp_rect.x, temp_rect.y,
             self->text);
+    break;
+  case ATLAS:
+    Atlas_render(self->atlas, renderer, self->atlas_index, temp_rect.x,
+                 temp_rect.y, temp_rect.w, temp_rect.h, NULL);
     break;
   }
 

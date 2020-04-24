@@ -23,12 +23,18 @@ void Atlas_deinit(Atlas *self) {
 
 void Atlas_init_texture(Atlas *self, SDL_Renderer *renderer,
                         const char *file_name, int tile_width) {
+  printf("Loading atlas file %s\n", file_name);
+
   self->surface = IMG_Load(file_name);
   self->texture = SDL_CreateTextureFromSurface(renderer, self->surface);
+
+  printf("surface w/h: %d %d\n", self->surface->w, self->surface->h);
 
   self->tile_width = tile_width;
   self->width = self->surface->w / tile_width;
   self->height = self->surface->h / tile_width;
+
+  printf("self    w/h: %d %d\n", self->width, self->height);
 }
 
 void Atlas_render(Atlas *self, SDL_Renderer *renderer, int i, int x, int y,
@@ -37,7 +43,7 @@ void Atlas_render(Atlas *self, SDL_Renderer *renderer, int i, int x, int y,
   srcrect.w = self->tile_width;
   srcrect.h = self->tile_width;
   srcrect.x = (i % self->width) * self->tile_width;
-  srcrect.y = (i / self->height) * self->tile_width;
+  srcrect.y = (i / self->width) * self->tile_width;
 
   SDL_Rect paintrect;
   paintrect.w = w;

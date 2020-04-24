@@ -4,9 +4,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "Atlas.h"
+
 enum BUTTON_TYPE {
   TEXT,
   TEXTURE,
+  ATLAS,
 };
 
 typedef struct {
@@ -17,8 +20,12 @@ typedef struct {
     struct {
       char *text;
       int font_size;
-    };
-    SDL_Texture *texture;
+    };                    // accessible for text type
+    SDL_Texture *texture; // accessible for texture type
+    struct {
+      Atlas *atlas;
+      int atlas_index;
+    }; // accessible for atlas type
   };
 
   int centerx; // when non-zero rect.x is added to half the renderer's width
@@ -43,6 +50,7 @@ void Button_init_text(Button *self, const char *msg, int font_size);
 void Button_init_icon(Button *self, SDL_Renderer *renderer,
                       const char *img_file);
 void Button_init_texture(Button *self, SDL_Texture *texture);
+void Button_init_atlas(Button *self, Atlas *atlas);
 
 void Button_render(Button *self, SDL_Renderer *renderer);
 

@@ -9,6 +9,14 @@
 enum HUD_ITEMS {
   HUD_HEALTH_BTN,
   HUD_INVENTORY_BG,
+
+  HUD_ITEM_0,
+  HUD_ITEM_1,
+  HUD_ITEM_2,
+  HUD_ITEM_3,
+  HUD_ITEM_4,
+  HUD_ITEM_5,
+
   HUD_NUM_ITEMS,
 };
 
@@ -34,13 +42,30 @@ void Hud_init(SDL_Renderer *renderer) {
   inventory_bg.is_dummy = 1;
   ids[HUD_INVENTORY_BG] = Menu_add_button(&hud_menu, inventory_bg);
 
-  Button health_but;
-  Button_init_text(&health_but, "health placeholder", 32);
-  health_but.rect.x = -250;
-  health_but.rect.y = -50;
-  health_but.centerx = 1;
-  health_but.is_dummy = 1;
-  ids[HUD_HEALTH_BTN] = Menu_add_button(&hud_menu, health_but);
+  Button health_btn;
+  Button_init_text(&health_btn, "health placeholder", 32);
+  health_btn.rect.x = -250;
+  health_btn.rect.y = -50;
+  health_btn.centerx = 1;
+  health_btn.is_dummy = 1;
+  ids[HUD_HEALTH_BTN] = Menu_add_button(&hud_menu, health_btn);
+
+  int i = 0;
+  for (int b = HUD_ITEM_0; b <= HUD_ITEM_5; b++) {
+    Button item_btn;
+    Button_init_atlas(&item_btn, &item_atlas);
+    item_btn.rect.x = -148 + i * 40;
+    item_btn.rect.y = -38;
+    item_btn.rect.w = 36;
+    item_btn.rect.h = 36;
+    item_btn.centerx = 1;
+    item_btn.is_active = 1;
+    item_btn.atlas_index = 1;
+
+    ids[b] = Menu_add_button(&hud_menu, item_btn);
+
+    i++;
+  }
 }
 
 void Hud_deinit() {}
