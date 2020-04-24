@@ -12,28 +12,28 @@
 
 #define PACKET_SIZE 64
 typedef struct {
-    Uint8* data;
-    int len;
-    int sender_id;
+  Uint8 *data;
+  int len;
+  int sender_id;
 } Packet;
 
-Packet* Packet_create(Uint8* data, int len, int sender_id);
-void Packet_destroy(Packet* pack);
+Packet *Packet_create(Uint8 *data, int len, int sender_id);
+void Packet_destroy(Packet *pack);
 
 typedef struct {
-    Vector* received;
-    Vector* received_swap;
-    Vector* sending;
-    int running;
+  Vector *received;
+  Vector *received_swap;
+  Vector *sending;
+  int running;
 
-    UDPsocket server;
-    SDL_mutex* server_mutex;
+  UDPsocket server;
+  SDL_mutex *server_mutex;
 
-    IPaddress server_address;
+  IPaddress server_address;
 
-    SDL_mutex* received_mutex;
-    SDL_mutex* sending_mutex;
-    SDL_mutex* running_mutex;
+  SDL_mutex *received_mutex;
+  SDL_mutex *sending_mutex;
+  SDL_mutex *running_mutex;
 } pool_t;
 
 extern pool_t shared_pool;

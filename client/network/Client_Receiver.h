@@ -6,7 +6,7 @@
 void Client_Receiver_init();
 void Client_Receiver_deinit();
 
-Vector* Client_Receiver_get_received();
+Vector *Client_Receiver_get_received();
 
 void Client_Receiver_run();
 void Client_Receiver_stop();

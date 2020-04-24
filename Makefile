@@ -33,7 +33,7 @@ editor:
 	$(CC) $(CFLAGS) $(LFLAGS) obj/editor/*.o obj/renderers/*.o obj/gui/*.o obj/game/*.o obj/utils/*.o obj/SDL_FontCache/*.o -o $(EDITOR_OUT)
 
 style:
-	clang-format -i -style=WebKit $(shell find . -name *.c -o -name *.h -type f)
+	clang-format -i $(shell find . -name "*.[ch]" -type f)
 
 clean:
 	rm $(CLIENT_OUT) $(SERVER_OUT) $(EDITOR_OUT) -r obj

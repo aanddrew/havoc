@@ -4,13 +4,13 @@
 #include "Vector2d.h"
 
 typedef struct {
-    float radius;
-    Vector2d center;
+  float radius;
+  Vector2d center;
 } HitBox;
 
-void HitBox_init(HitBox* self);
-void HitBox_deinit(HitBox* self);
+void HitBox_init(HitBox *self);
+void HitBox_deinit(HitBox *self);
 
-int HitBox_collision(HitBox* h1, HitBox* h2);
+int HitBox_collision(HitBox *h1, HitBox *h2);
 
 #endif
