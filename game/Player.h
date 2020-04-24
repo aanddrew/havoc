@@ -4,12 +4,15 @@
 #include "../gui/Dolly.h"
 #include "Vector2d.h"
 #include "HitBox.h"
+#include "Item.h"
 
 //
 // Structured very similarly to the Projectile system, where all the players
 // are stored in static variables inside of Player.c, and we can interact
 // with it through some methods defined here
 //
+
+#define INVENTORY_SIZE 16
 
 typedef struct {
     Vector2d pos;
@@ -32,6 +35,8 @@ typedef struct {
     int is_connected;
 
     float time_since_last_message;
+
+    Item inventory[INVENTORY_SIZE];
 } Player;
 
 void Player_init(Player* self);
