@@ -1,6 +1,5 @@
 **Welcome to HAVOC**
 
-HAVOC is a 2d moba where the items you buy defines your character,
-not a pre-set combination of abilities.
+HAVOC is a simple example of a 2d multiplayer game.
 
-Currently the engine is being built.
+[Here's a short youtube video about the project.](https://youtu.be/-WUXyoWfnxg)
